@@ -259,7 +259,7 @@ def copy_anything_to_container(container: Container, container_type: str, host_p
         raise FileNotFoundError(msg)
 
     # cannot directly use -a flag because some machines require the user in docker container to be present on host machine. We will handle the ownership in _setup_workspace file.
-    cmd = ["docker", "cp", host_path, f"{container.id}:{container_path}"]
+    cmd = [container_type, "cp", host_path, f"{container.id}:{container_path}"]
     logger.debug(f"Copying {host_path} to container at {container_path} with command: {shlex.join(cmd)}")
     try:
         subprocess.run(cmd, check=True)
@@ -267,7 +267,7 @@ def copy_anything_to_container(container: Container, container_type: str, host_p
         msg = f"Error copying {host_path} to container at {container_path}: {e}"
         raise RuntimeError(msg) from e
     # set agent as the owner of the copied files
-    cmd = ["docker", "exec", "-u", "root", container.id, "chown", "-R", "agent:mlgym", container_path]
+    cmd = [container_type, "exec", "-u", "root", container.id, "chown", "-R", "agent:mlgym", container_path]
     logger.debug(f"Setting agent as owner of copied files at {container_path} with command: {shlex.join(cmd)}")
     try:
         subprocess.run(cmd, check=True)
@@ -275,7 +275,7 @@ def copy_anything_to_container(container: Container, container_type: str, host_p
         msg = f"Error setting agent as owner of copied files at {container_path}: {e}"
         raise RuntimeError(msg) from e
 
-def copy_anything_from_container(container: Container, host_path: str, container_path: str) -> None:
+def copy_anything_from_container(container: Container, container_type: str, host_path: str, container_path: str) -> None:
     """
     Copy files or directories from container to host.
 
@@ -289,7 +289,7 @@ def copy_anything_from_container(container: Container, host_path: str, container
     """
     assert isinstance(container, Container)
     # use -a to set ownership of the copied files to the user in the container
-    cmd = ["docker", "cp", f"{container.id}:{container_path}", host_path]
+    cmd = [container_type, "cp", f"{container.id}:{container_path}", host_path]
     logger.debug(f"Copying {container_path} to host at {host_path} with command: {shlex.join(cmd)}")
     try:
         subprocess.run(cmd, check=True)
@@ -441,7 +441,7 @@ def _get_non_persistent_container(container_name: str, image_name: str, containe
     """
     if len(devices) == 1 and "cpu" in devices[0]:
         startup_cmd = [
-            "docker",
+            container_type,
             "run",
             "-i",
             "--rm",
@@ -457,7 +457,7 @@ def _get_non_persistent_container(container_name: str, image_name: str, containe
     else:
         device_str = f'"device={",".join(devices)}"' if container_type == "docker" else f'{",".join(devices)}'
         startup_cmd = [
-            "docker",
+            container_type,
             "run",
             "-i",
             "--rm",
@@ -543,7 +543,7 @@ def _get_persistent_container(container_name: str, image_name: str, container_ty
         )
         container_obj.start()
     startup_cmd = [
-        "docker",
+        container_type,
         "exec",
         "-i",
         container_name,

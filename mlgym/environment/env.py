@@ -504,7 +504,12 @@ class MLGymEnv(gym.Env):
             if self.args.memory_enabled:
                 self.logger.info("Attempting to save memory before exiting container")
                 assert self.container_obj is not None
-                copy_anything_from_container(container=self.container_obj, host_path=str(self.task_args.memory_path), container_path=str(self.memory_path))
+                copy_anything_from_container(
+                    container=self.container_obj,
+                    container_type=self.container_type,
+                    host_path=str(self.task_args.memory_path),
+                    container_path=str(self.memory_path),
+                )
             
             self.communicate(input="exit")
 
