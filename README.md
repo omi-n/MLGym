@@ -59,12 +59,11 @@ This is the first Gym environment for machine learning (ML) tasks, enabling rese
     ANTHROPIC_API_KEY=""
     ```
 
-3. You can use Docker or Podman to run the tasks inside the container. Podman is a recommended way of running
-a container in MacOS.
+3. You can use either Docker or Podman to run tasks inside a container. Podman is the recommended way to run containers on macOS.
 
-4. Follow the instructions [here](https://docs.docker.com/desktop/) to install docker. Choose the appropriate install command depending on your OS.
+4. Follow the instructions [here](https://docs.docker.com/desktop/) to install docker. Select the appropriate installation command based on your OS.
 
-5. If you are working on a linux machine, please install the `nvidia-container-runtime`. This is required to start docker containers with GPU support.
+5. If you are working on a Linux machine, please install the `nvidia-container-runtime`. This is required to start docker containers with GPU support.
 
     ```bash
     sudo dnf install -y nvidia-container-toolkit
@@ -89,8 +88,8 @@ a container in MacOS.
     ```
 
 8. For MacOS:  
-    a. If you're familiar with brew package manager, install podman with `brew install podman`. Otherwise follow the instructions [here](https://podman.io/get-started).  
-    b. Start the podman machine and set the socket env var:
+    a. If you use Homebrew package manager, install Podman with `brew install podman`. Otherwise, follow the instructions [here](https://podman.io/get-started).  
+    b. Start the podman machine and set the docker host env variable:
     ```bash
     podman machine init
     podman machine start
