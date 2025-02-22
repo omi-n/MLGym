@@ -25,7 +25,7 @@ This is the first Gym environment for machine learning (ML) tasks, enabling rese
 ![image info](./assets/figs/mlgym.png)
 
 > [!WARNING]
-> Meta <span style="font-variant:small-caps;">MLGym</span> is currently an experimental framework intended for benchmarking AI Research Agents. It is under heavy development. Please except major changes to the design.
+> Meta <span style="font-variant:small-caps;">MLGym</span> is currently an experimental framework intended for benchmarking AI Research Agents. It is under heavy development. Please expect major changes to the design.
 >
 > The primary goal of <span style="font-variant:small-caps;">MLGym</span> is to expand the selection of AI research tasks for benchmarking the LLM Agents and implementing RL algorithms to train LLMs in a research environment.
 > `main` branch will always contain the latest stable release and all breaking changes will be announced in the [release notes](./CHANGELOG.md).
