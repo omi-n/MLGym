@@ -104,15 +104,19 @@ class LiteLLMModel(BaseModel):
         completion_kwargs = self.args.completion_kwargs
         if self.lm_provider == "anthropic":
             completion_kwargs["max_tokens"] = self.model_max_output_tokens
-        response: litellm.types.utils.ModelResponse = litellm.completion(  # type: ignore
-            model=self.model_name,
-            messages=messages,
-            temperature=self.args.temperature,
-            top_p=self.args.top_p,
-            api_version=self.args.api_version,
-            **completion_kwargs,
-            **extra_args,
-        )
+        try:
+            response: litellm.types.utils.ModelResponse = litellm.completion(  # type: ignore
+                model=self.model_name,
+                messages=messages,
+                temperature=self.args.temperature,
+                top_p=self.args.top_p,
+                api_version=self.args.api_version,
+                **completion_kwargs,
+                **extra_args,
+            )
+        except Exception as e:
+            self.logger.exception(f"Error during LLM query: {e}")
+            raise e
         choices: litellm.types.utils.Choices = response.choices # type: ignore
         output = choices[0].message.content or ""
         # output_dict = {"message": output}

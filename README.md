@@ -37,7 +37,8 @@ This is the first Gym environment for machine learning (ML) tasks, enabling rese
     ```bash
     git clone git@github.com:facebookresearch/MLGym.git
     cd MLGym
-    conda create -n mlgym python=3.11
+    conda create -y -n mlgym python=3.11
+    conda activate mlgym
     pip install -e .
     ```
 
@@ -58,17 +59,21 @@ This is the first Gym environment for machine learning (ML) tasks, enabling rese
     ANTHROPIC_API_KEY=""
     ```
 
-3. Follow the instructions [here](https://docs.docker.com/desktop/) to install docker. Choose the appropriate install command depending on your OS.
+3. You can use either Docker or Podman to run tasks inside a container. Podman is the recommended way to run containers on macOS.
 
-4. If you are working on a linux machine, please install the `nvidia-container-runtime`. This is required to start docker containers with GPU support.
+4. Follow the instructions [here](https://docs.docker.com/desktop/) to install docker. Select the appropriate installation command based on your OS.
+
+5. If you are working on a Linux machine, please install the `nvidia-container-runtime`. This is required to start docker containers with GPU support.
 
     ```bash
     sudo dnf install -y nvidia-container-toolkit
     ```
 
-5. **Please skip to step 9 if you don't want to use Podman**.
-6. Follow the instructions [here](https://podman.io/get-started) to install Podman.
-7. Start podman socket. The last command should return a running podman socket.
+6. **Please skip to step 9 if you don't want to use Podman**.
+
+7. For Linux:  
+    a. Follow the instructions [here](https://podman.io/get-started) to install Podman.  
+    b. Start podman socket. The last command should return a running podman socket:
 
     ```bash
     systemctl --user enable podman.socket
@@ -76,16 +81,30 @@ This is the first Gym environment for machine learning (ML) tasks, enabling rese
     systemctl --user status podman.socket 
     ```
 
-8. Redirect docker host to podman by exporting docker host env variable in bashrc or current session.
+    c. Redirect docker host to podman by exporting docker host env variable in bashrc or current session:
 
     ```bash
     export DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock
     ```
 
-9. Pull the docker container
+8. For MacOS:  
+    a. If you use Homebrew package manager, install Podman with `brew install podman`. Otherwise, follow the instructions [here](https://podman.io/get-started).  
+    b. Start the podman machine and set the docker host env variable:
+    ```bash
+    podman machine init
+    podman machine start
+    export DOCKER_HOST=unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')
+    ```
+
+9. Pull the container image:
 
     ```bash
     docker pull aigym/mlgym-agent:latest
+    ```
+
+    or  
+    ```bash
+    podman pull aigym/mlgym-agent:latest
     ```
 
 10. Test launching a docker/podman container with GPU support
