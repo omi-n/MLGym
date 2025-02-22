@@ -93,7 +93,7 @@ This is the first Gym environment for machine learning (ML) tasks, enabling rese
     ```bash
     podman machine init
     podman machine start
-    export DOCKER_HOST=http+unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')
+    export DOCKER_HOST=unix://$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}')
     ```
 
 9. Pull the container image:
