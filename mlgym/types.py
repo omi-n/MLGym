@@ -12,12 +12,22 @@ from typing import Any, TypedDict
 
 
 class TrajectoryStep(TypedDict):
-    action: str
-    observation: str
-    response: str
+    """A single step in an agent's trajectory through the environment.
+
+    Represents the sequence of agent-environment interaction:
+    1. state: Current environment state
+    2. response: Raw model output
+    3. thought: Extracted reasoning
+    4. action: Selected action
+    5. execution_time: Action execution duration
+    6. observation: Environment response
+    """
     state: str | None
+    response: str
     thought: str
+    action: str
     execution_time: float
+    observation: str | None
 
 
 class _HistoryItem(TypedDict):
