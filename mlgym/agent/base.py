@@ -711,14 +711,12 @@ class BaseAgent:
         execution_time = time.perf_counter() - execution_t0
 
         trajectory_step = TrajectoryStep(
-            {
-                "action": action,
-                "observation": observation, # type: ignore
-                "response": output,
-                "state": state,
-                "thought": thought,
-                "execution_time": execution_time,
-            },
+            state=state,
+            response=output,
+            thought=thought,
+            action=action,
+            execution_time=execution_time,
+            observation=observation
         )
         self.trajectory.append(trajectory_step)
         model_stats: APIStats = self.model.stats
