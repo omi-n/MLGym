@@ -8,6 +8,8 @@
   <!-- <a href="https://pepy.tech/project/mlgym"><img src="https://static.pepy.tech/personalized-badge/minihack?period=total&units=international_system&left_color=black&right_color=red&left_text=Downloads" /></a> -->
   <!-- <a href="https://github.com/facebookresearch/minihack/actions/workflows/test_and_deploy.yml"><img src="https://github.com/facebookresearch/minihack/actions/workflows/test_and_deploy.yml/badge.svg?branch=main" /></a> -->
   <a href="https://arxiv.org/abs/2502.14499"><img src="https://img.shields.io/badge/arXiv-2502.14499-b31b1b.svg"/></a>
+  <a href="https://discord.gg/Zep3cyHhjJ"><img src="https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white" /></a>
+  <a href="https://sites.google.com/view/mlgym"><img src="https://img.shields.io/badge/Website-MLGym-blue" /></a>
  </p>
 
 ## Table of contents
@@ -90,6 +92,7 @@ This is the first Gym environment for machine learning (ML) tasks, enabling rese
 8. For MacOS:  
     a. If you use Homebrew package manager, install Podman with `brew install podman`. Otherwise, follow the instructions [here](https://podman.io/get-started).  
     b. Start the podman machine and set the docker host env variable:
+
     ```bash
     podman machine init
     podman machine start
@@ -103,6 +106,7 @@ This is the first Gym environment for machine learning (ML) tasks, enabling rese
     ```
 
     or  
+
     ```bash
     podman pull aigym/mlgym-agent:latest
     ```
