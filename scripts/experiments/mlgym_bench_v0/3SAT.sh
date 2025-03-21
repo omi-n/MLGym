@@ -16,7 +16,7 @@ run_experiment() {
 
     python run.py \
         --container_type docker \
-        --task_config_path tasks/3SAT.yaml \
+        --task_config_path tasks/3SATTime.yaml \
         --model "$model" \
         --per_instance_cost_limit 4.00 \
         --config_file configs/agents/better_thought_action_parser_with_insert.yaml \

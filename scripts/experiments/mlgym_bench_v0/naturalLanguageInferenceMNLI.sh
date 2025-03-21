@@ -12,28 +12,28 @@ MODELS=(
 )
 
 # Loop through each model and run the experiment
-# for model in "${MODELS[@]}"; do
-#     echo "Running experiment with model: $model"
+for model in "${MODELS[@]}"; do
+    echo "Running experiment with model: $model"
 
-#     python run.py \
-#         --container_type docker \
-#         --task_config_path tasks/naturalLanguageInferenceMNLI.yaml \
-#         --model "$model" \
-#         --per_instance_cost_limit 4.00 \
-#         --config_file configs/agents/better_thought_action_parser_with_insert.yaml \
-#         --temp 0 \
-#         --gpus 0 1 2 3 4 5 6 7 \
-#         --gpus_per_agent 2 \
-#         --num_agents 4 \
-#         --max_steps 50 \
-#         --suffix parallel_agents \
-#         --aliases_file ./docker/aliases_docker.sh
+    python run.py \
+        --container_type docker \
+        --task_config_path tasks/naturalLanguageInferenceMNLI.yaml \
+        --model "$model" \
+        --per_instance_cost_limit 4.00 \
+        --config_file configs/agents/better_thought_action_parser_with_insert.yaml \
+        --temp 0 \
+        --gpus 0 1 2 3 4 5 6 7 \
+        --gpus_per_agent 2 \
+        --num_agents 4 \
+        --max_steps 50 \
+        --suffix parallel_agents \
+        --aliases_file ./docker/aliases_docker.sh
 
-#     sleep 300
-# done
+    sleep 300
+done
 
 # wait for all background processes to complete
-# wait
+wait
 
 python scripts/process_results.py \
     --traj_parent_dir trajectories/$USER/ \
