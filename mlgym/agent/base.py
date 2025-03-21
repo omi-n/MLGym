@@ -3,13 +3,14 @@ Copyright (c) Meta Platforms, Inc. and affiliates.
 
 Base agent implementation for the MLGym framework.
 
-This module provides the core agent functionality including configuration, 
+This module provides the core agent functionality including configuration,
 history tracking, model interaction, and environment communication. The agent
 is responsible for receiving observations from the environment, querying the
 model for actions, and executing those actions.
 
 Adapted from SWE-Agent/sweagent/agent/agents.py
 """
+
 from __future__ import annotations
 
 import json
@@ -66,13 +67,17 @@ class AgentConfig(FlattenedAccess, FrozenSerializable):
     def __post_init__(self):
         object.__setattr__(self, "tools_handler", ToolHandler(self.tools))
 
-        object.__setattr__(self, "demonstrations", convert_paths_to_abspath(self.demonstrations))
+        object.__setattr__(
+            self, "demonstrations", convert_paths_to_abspath(self.demonstrations)
+        )
 
         if self.next_step_template is None:
             object.__setattr__(self, "next_step_template", self.task_template)
         if self.next_step_no_output_template is None:
-            object.__setattr__(self, "next_step_no_output_template", self.next_step_template)
-            
+            object.__setattr__(
+                self, "next_step_no_output_template", self.next_step_template
+            )
+
         object.__setattr__(self, "output_parser", ParseFunction.get(self.output_parser))
         assert isinstance(self.output_parser, ParseFunction)
         if self.format_error_template is None:
@@ -93,6 +98,7 @@ class AgentConfig(FlattenedAccess, FrozenSerializable):
             HistoryProcessor.get(self.history_processor, **self.history_processor_args),
         )
 
+
 @dataclass(frozen=True)
 class AgentArguments(FlattenedAccess, FrozenSerializable):
     """Configure the agent's behaviour (templates, parse functions, ...)."""
@@ -111,10 +117,11 @@ class AgentArguments(FlattenedAccess, FrozenSerializable):
             object.__setattr__(self, "config", config)
         assert self.config is not None
 
+
 class BaseAgent:
     """
     Base agent class that handles model-environment interaction.
-    
+
     The agent manages the conversation history, executes actions in the environment,
     and maintains trajectory information. It implements the core logic for:
     - Processing observations from the environment
@@ -158,8 +165,9 @@ class BaseAgent:
         self._history: History = list()
         self._trajectory: Trajectory = list()
         self._info: AgentInfo
-        self._default_logging_level = logging.INFO if args.log_verbose_to_console else logging.TRACE
-
+        self._default_logging_level = (
+            logging.INFO if args.log_verbose_to_console else logging.TRACE
+        )
 
     def set_log_verbose_to_console(self, flag: bool) -> None:
         """
@@ -226,7 +234,9 @@ class BaseAgent:
         """
         self.history.append(item)
 
-    def setup(self, task_args: TaskConfig, init_model_stats: APIStats | None = None) -> None:
+    def setup(
+        self, task_args: TaskConfig, init_model_stats: APIStats | None = None
+    ) -> None:
         """
         Initializes the agent for a new task.
 
@@ -246,27 +256,44 @@ class BaseAgent:
         # reset model stats
         self.model.reset_stats(init_model_stats)
 
-        system_msg = self.config.system_template.format(**self.system_args, **asdict(self.task_args))
-        self.logger.log(self._default_logging_level, f"SYSTEM ({self.name})\n{system_msg}")
-        self._append_history(HistoryItem({"role": "system", "content": system_msg, "agent": self.name}))
+        system_msg = self.config.system_template.format(
+            **self.system_args, **asdict(self.task_args)
+        )
+        self.logger.log(
+            self._default_logging_level, f"SYSTEM ({self.name})\n{system_msg}"
+        )
+        self._append_history(
+            HistoryItem({"role": "system", "content": system_msg, "agent": self.name})
+        )
         if "history_to_messages" in dir(self.model):
             for demonstration_path in self.config.demonstrations:
-                if self.config.demonstration_template is None and not self.config.put_demos_in_history:
+                if (
+                    self.config.demonstration_template is None
+                    and not self.config.put_demos_in_history
+                ):
                     msg = "Cannot use demonstrations without a demonstration template or put_demos_in_history=True"
                     raise ValueError(msg)
 
                 # Load history
-                self.logger.log(self._default_logging_level, f"DEMONSTRATION ({self.name}): {demonstration_path}")
-                demo_history = json.loads(Path(demonstration_path).read_text())["history"]
+                self.logger.log(
+                    self._default_logging_level,
+                    f"DEMONSTRATION ({self.name}): {demonstration_path}",
+                )
+                demo_history = json.loads(Path(demonstration_path).read_text())[
+                    "history"
+                ]
                 demo_history = [
                     entry
                     for entry in demo_history
-                    if ("agent" not in entry) or ("agent" in entry and entry["agent"] == self.name)
+                    if ("agent" not in entry)
+                    or ("agent" in entry and entry["agent"] == self.name)
                 ]
 
                 if self.config.put_demos_in_history:
                     if self.config.demonstration_template is not None:
-                        self.logger.warning("Demonstration template is ignored for put_demos_in_history=True")
+                        self.logger.warning(
+                            "Demonstration template is ignored for put_demos_in_history=True"
+                        )
                     # Add demonstrations to history directly as separate messages
                     for entry in demo_history:
                         if entry["role"] != "system":
@@ -278,7 +305,9 @@ class BaseAgent:
                         demo_history,
                         is_demonstration=True,
                     )
-                    demonstration = self.config.demonstration_template.format(demonstration=demo_message)
+                    demonstration = self.config.demonstration_template.format(
+                        demonstration=demo_message
+                    )
                     self._append_history(
                         {
                             "agent": self.name,
@@ -293,7 +322,9 @@ class BaseAgent:
         """Return the history of the agent."""
         assert self.config is not None
         assert isinstance(self.config.history_processor, HistoryProcessor)
-        truncated_history = self.config.history_processor([entry for entry in self.history if entry.get("agent") == self.name])
+        truncated_history = self.config.history_processor(
+            [entry for entry in self.history if entry.get("agent") == self.name]
+        )
         return truncated_history
 
     def save_trajectory(self) -> None:
@@ -317,7 +348,7 @@ class BaseAgent:
         """
         results = {}
         if self._info.get("score", None) is not None:
-            results["agent"] = self._info["score"] # type: ignore
+            results["agent"] = self._info["score"]  # type: ignore
         assert self._env is not None
         assert self._env.task is not None
         if self._env.task.args.baseline_scores:
@@ -326,8 +357,9 @@ class BaseAgent:
         results_path = self.traj_path.parent / "results.json"
         results_path.write_text(json.dumps(results, indent=2))
 
-
-    def forward(self, observation: str | None, available_actions: list[str], state: str) -> tuple[str, str, str]:
+    def forward(
+        self, observation: str | None, available_actions: list[str], state: str
+    ) -> tuple[str, str, str]:
         """
         Processes an observation and generates the next action.
 
@@ -355,8 +387,12 @@ class BaseAgent:
             }
         )
 
-        self.logger.log(self._default_logging_level, f"💭 THOUGHT ({self.name})\n{thought}")
-        self.logger.log(self._default_logging_level, f"🎬 ACTION ({self.name})\n{action}")
+        self.logger.log(
+            self._default_logging_level, f"💭 THOUGHT ({self.name})\n{thought}"
+        )
+        self.logger.log(
+            self._default_logging_level, f"🎬 ACTION ({self.name})\n{action}"
+        )
 
         return thought, action, output
 
@@ -391,7 +427,9 @@ class BaseAgent:
         templates: list[str] = list()
 
         # Determine observation template based on what prior observation was
-        if self.history[-1]["role"] == "system" or self.history[-1].get("is_demo", False):
+        if self.history[-1]["role"] == "system" or self.history[-1].get(
+            "is_demo", False
+        ):
             # Show task template if prev. obs. was initial system message
             templates = [self.config.task_template]
             if self.config.strategy_template is not None:
@@ -420,7 +458,9 @@ class BaseAgent:
 
         message = "\n".join(messages)
 
-        self.logger.log(self._default_logging_level, f"🤖 MODEL INPUT ({self.name})\n{message}")
+        self.logger.log(
+            self._default_logging_level, f"🤖 MODEL INPUT ({self.name})\n{message}"
+        )
         self.logger.info(f"({self.name}) {state_vars=}")
         self._append_history({"role": "user", "content": message, "agent": self.name})
 
@@ -469,7 +509,9 @@ class BaseAgent:
         """
         assert self.config is not None
         name = action.strip().split()[0]
-        blocklist_error_message = self.tools.config.blocklist_error_template.format(name=name)
+        blocklist_error_message = self.tools.config.blocklist_error_template.format(
+            name=name
+        )
 
         self.logger.warning(f"BLOCKLISTED OUTPUT ({self.name})\n{output}")
         self.logger.warning(f"BLOCKLIST ERROR ({self.name})\n{blocklist_error_message}")
@@ -531,7 +573,9 @@ class BaseAgent:
         self.logger.warning(f"Malformat limit reached: \n{output}")
         return "Exit due to format error", "exit_format", output
 
-    def forward_with_error_check(self, observation: str | None, state: str) -> tuple[str, str, str]:
+    def forward_with_error_check(
+        self, observation: str | None, state: str
+    ) -> tuple[str, str, str]:
         """
         Wraps forward_model with comprehensive error handling.
 
@@ -561,7 +605,11 @@ class BaseAgent:
             )
         except ContextWindowExceededError:
             self.logger.warning("Context window exceeded")
-            return "Exit due to context window", "exit_context", "Exit due to context window"
+            return (
+                "Exit due to context window",
+                "exit_context",
+                "Exit due to context window",
+            )
         except CostLimitExceededError:
             self.logger.warning("Cost limit exceeded")
             return "Exit due to cost limit", "exit_cost", "Exit due to cost limit"
@@ -590,7 +638,9 @@ class BaseAgent:
         assert self.config is not None
         self.set_environment_vars(env, self.config.env_variables)
 
-    def set_environment_vars(self, env: MLGymEnv, env_variables: dict[str, Any]) -> None:
+    def set_environment_vars(
+        self, env: MLGymEnv, env_variables: dict[str, Any]
+    ) -> None:
         """
         Sets environment variables and configures command files.
 
@@ -608,11 +658,9 @@ class BaseAgent:
             RuntimeError: If setting environment variables fails
         """
         assert self.config is not None  # mypy
-        commands_to_execute = (
-            [self.tools.state_command.code]
-            +
-            [f"{k}={v}" for k, v in env_variables.items()]
-        )
+        commands_to_execute = [self.tools.state_command.code] + [
+            f"{k}={v}" for k, v in env_variables.items()
+        ]
         commands = "\n".join(commands_to_execute)
         try:
             output = env.communicate(commands)
@@ -690,12 +738,18 @@ class BaseAgent:
 
         # TODO: step start hooks here
 
-        state = self._env.communicate(self.tools.state_command.name) if self.tools.state_command else None
-        thought, action, output = self.forward(observation, self._env.get_available_actions(), state)
+        state = (
+            self._env.communicate(self.tools.state_command.name)
+            if self.tools.state_command
+            else None
+        )
+        thought, action, output = self.forward(
+            observation, self._env.get_available_actions(), state
+        )
 
         # TODO: actions generated hooks here
 
-        run_action: str = self.tools.guard_multiline_input(action)
+        run_action: str = self.tools.guard_multiline_input(action).strip()
 
         done = False
         observation = None
@@ -703,7 +757,7 @@ class BaseAgent:
 
         assert self._env is not None
         assert self.config is not None
-        observation, _, done, _info = self._env.step(action)
+        observation, _, done, _info = self._env.step(run_action)
         self.info.update(_info)
 
         if run_action.strip() == self.tools.submit_command:
@@ -716,16 +770,21 @@ class BaseAgent:
             thought=thought,
             action=action,
             execution_time=execution_time,
-            observation=observation
+            observation=observation,
         )
         self.trajectory.append(trajectory_step)
         model_stats: APIStats = self.model.stats
         self.info["model_stats"] = model_stats.to_dict()
         return observation, done
 
-    def run(self, env: MLGymEnv, observation: str | None = None, 
-            traj_dir: Path | None = None, return_type: str = "info_trajectory",
-            init_model_stats: APIStats | None = None):
+    def run(
+        self,
+        env: MLGymEnv,
+        observation: str | None = None,
+        traj_dir: Path | None = None,
+        return_type: str = "info_trajectory",
+        init_model_stats: APIStats | None = None,
+    ):
         """
         Runs the agent in the given environment until completion.
 
@@ -752,7 +811,9 @@ class BaseAgent:
         assert env.container is not None
 
         if env.container is not None:
-            self.logger.info(f"Initializing commands for container pid {env.container.pid}")
+            self.logger.info(
+                f"Initializing commands for container pid {env.container.pid}"
+            )
             self.init_environment_vars(env)
 
         self.setup(env.task.args, init_model_stats)

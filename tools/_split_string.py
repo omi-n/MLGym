@@ -17,8 +17,6 @@ Where:
     <n_lines> is the number of lines added in the edit
 """
 
-# ruff: noqa: UP007 UP006 UP035
-
 import sys
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
@@ -41,7 +39,9 @@ class Flake8Error:
 
 
 def _update_previous_errors(
-    previous_errors: List[Flake8Error], replacement_window: Tuple[int, int], replacement_n_lines: int
+    previous_errors: List[Flake8Error],
+    replacement_window: Tuple[int, int],
+    replacement_n_lines: int,
 ) -> List[Flake8Error]:
     """Update the line numbers of the previous errors to what they would be after the edit window.
     This is a helper function for `_filter_previous_errors`.
@@ -58,7 +58,9 @@ def _update_previous_errors(
         list of errors with updated line numbers
     """
     updated = []
-    lines_added = replacement_n_lines - (replacement_window[1] - replacement_window[0] + 1)
+    lines_added = replacement_n_lines - (
+        replacement_window[1] - replacement_window[0] + 1
+    )
     for error in previous_errors:
         if error.line_number < replacement_window[0]:
             # no need to adjust the line number
@@ -69,7 +71,14 @@ def _update_previous_errors(
             # either way (we wouldn't know how to adjust the line number anyway)
             continue
         # We're out of the edit window, so we need to adjust the line number
-        updated.append(Flake8Error(error.filename, error.line_number + lines_added, error.col_number, error.problem))
+        updated.append(
+            Flake8Error(
+                error.filename,
+                error.line_number + lines_added,
+                error.col_number,
+                error.problem,
+            )
+        )
     return updated
 
 
@@ -93,15 +102,23 @@ def format_flake8_output(
     Returns:
         The filtered flake8 output as a string
     """
-    errors = [Flake8Error.from_line(line.strip()) for line in input_string.split("\n") if line.strip()]
+    errors = [
+        Flake8Error.from_line(line.strip())
+        for line in input_string.split("\n")
+        if line.strip()
+    ]
     lines = []
     if previous_errors_string:
         assert replacement_window is not None
         assert replacement_n_lines is not None
         previous_errors = [
-            Flake8Error.from_line(line.strip()) for line in previous_errors_string.split("\n") if line.strip()
+            Flake8Error.from_line(line.strip())
+            for line in previous_errors_string.split("\n")
+            if line.strip()
         ]
-        previous_errors = _update_previous_errors(previous_errors, replacement_window, replacement_n_lines)
+        previous_errors = _update_previous_errors(
+            previous_errors, replacement_window, replacement_n_lines
+        )
         errors = [error for error in errors if error not in previous_errors]
     for error in errors:
         if not show_line_numbers:
@@ -119,7 +136,10 @@ if __name__ == "__main__":
         n_lines = int(sys.argv[5])
         print(
             format_flake8_output(
-                sys.argv[1], previous_errors_string=sys.argv[2], replacement_window=window, replacement_n_lines=n_lines
+                sys.argv[1],
+                previous_errors_string=sys.argv[2],
+                replacement_window=window,
+                replacement_n_lines=n_lines,
             )
         )
     else:

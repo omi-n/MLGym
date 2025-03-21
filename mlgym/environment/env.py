@@ -10,6 +10,7 @@ and manages the workspace, evaluation, and resource limits.
 
 Adapted from SWE-Agent/sweagent/environment/swe_env.py
 """
+
 from __future__ import annotations
 
 import copy
@@ -26,8 +27,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-import docker.errors
-import docker.models.containers
 import gymnasium as gym
 import yaml
 from simple_parsing import choice
@@ -35,6 +34,8 @@ from simple_parsing.helpers.flatten import FlattenedAccess
 from simple_parsing.helpers.serialization.serializable import FrozenSerializable
 
 import docker
+import docker.errors
+import docker.models.containers
 from mlgym import CONFIG_DIR, REPO_ROOT
 from mlgym.environment.spaces import Unicode
 from mlgym.environment.tasks import (
@@ -66,11 +67,15 @@ ENV_LONG_TIMEOUT = int(os.getenv("MLGYM_ENV_TIMEOUT", "500"))
 AGENT_SHORT_ACTION_TIMEOUT = int(os.getenv("MLGYM_AGENT_SHORT_TIMEOUT", "25"))
 # for training calls
 AGENT_LONG_ACTION_TIMEOUT = int(os.getenv("MLGYM_AGENT_LONG_TIMEOUT", "3600"))
-AGENT_ACTION_NO_OUTPUT_TIMEOUT = int(os.getenv("MLGYM_AGENT_ACTION_NO_OUTPUT_TIMEOUT", str(AGENT_LONG_ACTION_TIMEOUT)))
+AGENT_ACTION_NO_OUTPUT_TIMEOUT = int(
+    os.getenv("MLGYM_AGENT_ACTION_NO_OUTPUT_TIMEOUT", str(AGENT_LONG_ACTION_TIMEOUT))
+)
 # global workspace directory
-GLOBAL_WORKSPACE_DIR = Path(os.getenv("MLGYM_WORKSPACE_PATH", str(REPO_ROOT / "workspace")))
+GLOBAL_WORKSPACE_DIR = Path(
+    os.getenv("MLGYM_WORKSPACE_PATH", str(REPO_ROOT / "workspace"))
+)
 
-EDIT_PATTERN = re.compile(r'^edit\s+(\d+):(\d+)(?:\n|$|\s)', re.MULTILINE)
+EDIT_PATTERN = re.compile(r"^edit\s+(\d+):(\d+)(?:\n|$|\s)", re.MULTILINE)
 TRAIN_COMMANDS = ["torchrun", "python", "python3", "accelerate", "deepspeed"]
 
 yaml.add_representer(str, multiline_representer)
@@ -121,7 +126,6 @@ class EnvironmentArguments(FlattenedAccess, FrozenSerializable):
     # Path to the bash aliases file to source in the container
     aliases_file: str | None = None
 
-
     def get_task_class(self) -> type[AbstractMLTask]:
         """
         Get the task class based on the task configuration.
@@ -149,7 +153,9 @@ class EnvironmentArguments(FlattenedAccess, FrozenSerializable):
             raise ValueError(msg)
 
         # always load the task config from the path
-        object.__setattr__(self, "task", TaskConfig.load_yaml(CONFIG_DIR / self.task_config_path))
+        object.__setattr__(
+            self, "task", TaskConfig.load_yaml(CONFIG_DIR / self.task_config_path)
+        )
 
         if self.cache_task_images and self.container_name:
             msg = (
@@ -165,7 +171,7 @@ class EnvironmentArguments(FlattenedAccess, FrozenSerializable):
 class MLGymEnv(gym.Env):
     """
     Main environment class for MLGym framework.
-    
+
     Implements the OpenAI Gym interface for machine learning tasks. Manages the
     container lifecycle, task execution, and agent interactions.
 
@@ -174,6 +180,7 @@ class MLGymEnv(gym.Env):
         name (str): Environment identifier
         cached_image_prefix (str): Prefix for cached task images
     """
+
     metadata = {"render_modes": ["human"]}
     name = "mlgym_main"
     # ! TODO: Caching should be handled at the benchmark level and not task level.
@@ -231,7 +238,9 @@ class MLGymEnv(gym.Env):
         self.logger.info(f"Task workspace directory set to: {self.task_workspace}")
 
         # TODO: this action space is a placeholder maybe.
-        self.action_space = Unicode(min_length=0, max_length=1000)  # TODO: read max_length from a global variable
+        self.action_space = Unicode(
+            min_length=0, max_length=1000
+        )  # TODO: read max_length from a global variable
 
         # TODO: this observation space is a placeholder. We need to define the actual observation space.
         self.observation_space = Unicode(min_length=0, max_length=10000)
@@ -246,7 +255,9 @@ class MLGymEnv(gym.Env):
         self.clean_multi_line_functions = lambda x: x
 
         #! TODO: environment initialization is not complete yet. Move this line to appropriate location.
-        self.logger.debug("Environment initialization took %.2f seconds", time.perf_counter() - t0)
+        self.logger.debug(
+            "Environment initialization took %.2f seconds", time.perf_counter() - t0
+        )
 
     def _get_cached_task_image_name(self) -> str:
         """
@@ -266,14 +277,13 @@ class MLGymEnv(gym.Env):
     def reset_container(self) -> None:
         """
         Reset the container to initial state.
-        
+
         Closes existing container and initializes a new one.
         """
         self.close()
         self.container = None
         self.container_obj = None
         self._reset_container()
-
 
     def reset(self, *args, **kwargs) -> dict[str, Any]:
         """
@@ -294,7 +304,7 @@ class MLGymEnv(gym.Env):
         """
         self.logger.info("Resetting the environment")
         super().reset(*args, **kwargs)
-        self.np_random = None # type: ignore
+        self.np_random = None  # type: ignore
 
         self.current_step = 0
         self.task = self.task_entrypoint(
@@ -302,7 +312,7 @@ class MLGymEnv(gym.Env):
             args=copy.deepcopy(self.task_args),
             task_workspace=str(self.task_workspace),
             _communicate=self.communicate,
-            _communicate_with_handling=self.communicate_with_handling
+            _communicate_with_handling=self.communicate_with_handling,
         )
 
         ### Reset Container ###
@@ -310,15 +320,21 @@ class MLGymEnv(gym.Env):
         if self.container_obj is not None and self.args.cache_task_images:
             cached_image = self._get_cached_task_image_name()
             if image_exists(cached_image):
-                self.logger.info(f"Restore environment from cached image {cached_image}")
-                self.close() # stop current container
+                self.logger.info(
+                    f"Restore environment from cached image {cached_image}"
+                )
+                self.close()  # stop current container
                 self._init_container(cached_image=cached_image)
                 self.communicate("export $(xargs </.env)")
                 envs = self.communicate("env")
-                self.logger.debug(f"Environment variables restored from the image:\n{envs}\n")
+                self.logger.debug(
+                    f"Environment variables restored from the image:\n{envs}\n"
+                )
                 return {"observation": None}
             else:
-                self.logger.info(f"Cached image {cached_image} not found, rebuilding task environment...")
+                self.logger.info(
+                    f"Cached image {cached_image} not found, rebuilding task environment..."
+                )
 
         self._setup_workspace()
         self._reset_environment_variables()
@@ -327,7 +343,7 @@ class MLGymEnv(gym.Env):
         self.task.setup()
 
         # install build essnetials on linux
-        assert self.container_obj is not None # mypy
+        assert self.container_obj is not None  # mypy
         system = self.communicate("uname -s").strip().lower()
         arch = self.communicate("uname -m").strip().lower()
         if system == "linux" and arch == "x86_64":
@@ -335,14 +351,18 @@ class MLGymEnv(gym.Env):
                 "apt update; apt install build-essential -y", user="root"
             )
 
-
         # Install mypy for linting purposes
-        self.communicate_with_handling("pip install flake8", error_msg="Failed to install flake8 (lint library)")
+        self.communicate_with_handling(
+            "pip install flake8", error_msg="Failed to install flake8 (lint library)"
+        )
         # self.container_obj.exec_run("pip install flake8")
 
         # Activate correct conda environment
         if self.task.args.use_generic_conda:
-            self.communicate_with_handling("conda activate mlgym_generic", error_msg="Failed to activate generic conda environment")
+            self.communicate_with_handling(
+                "conda activate mlgym_generic",
+                error_msg="Failed to activate generic conda environment",
+            )
         else:
             self.install_and_activate_env()
 
@@ -350,24 +370,29 @@ class MLGymEnv(gym.Env):
             envs = self.communicate("env")
             self.logger.debug(f"Environment variables to save:\n{envs}\n")
             self.communicate("env >> /.env")
-            assert self.container_obj is not None # mypy
+            assert self.container_obj is not None  # mypy
             self.container_obj.commit(cached_image)
-            self.logger.info(f"Container with environment {self.container_obj.id} cached as image {cached_image}")
+            self.logger.info(
+                f"Container with environment {self.container_obj.id} cached as image {cached_image}"
+            )
 
         # change current directory to the task workspace
         self.communicate(f"cd {self.task_workspace}")
 
-        # this executes the baseline for the first time 
+        # this executes the baseline for the first time
         updated = self.task.update_baseline_scores()
-        
+
         # We need to clean up the workspace after baseline is done here. Remove everything in the workspace except starter code.
         workspace_files = self.communicate(f"ls {self.task_workspace}").split("\n")
-        workspace_files = [file.strip('*/') for file in workspace_files if file]
-        starter_files = [Path(self.task_workspace / file).name for file in self.task.args.starter_code]
+        workspace_files = [file.strip("*/") for file in workspace_files if file]
+        starter_files = [
+            Path(self.task_workspace / file).name
+            for file in self.task.args.starter_code
+        ]
         for file in workspace_files:
             if file not in starter_files and file != "data":
                 self.communicate(f"rm -rf {self.task_workspace / file}")
-        
+
         # cache baseline scores to the task config file
         if self.args.cache_baseline_scores and updated:
             assert self.args.task_config_path is not None
@@ -377,7 +402,7 @@ class MLGymEnv(gym.Env):
 
         # TODO: what info should we return here?
         return {"observation": None}
-    
+
     def step(self, action: str) -> tuple[str | None, float, bool, AgentInfo]:
         """
         Execute one step of the environment.
@@ -417,7 +442,13 @@ class MLGymEnv(gym.Env):
             observation = "Exited (exit_forfeit)"
             info["exit_status"] = action
             return observation, 0, True, info
-        if action in {"exit_context", "exit_cost", "exit_error", "exit_format", "exit_api"}:
+        if action in {
+            "exit_context",
+            "exit_cost",
+            "exit_error",
+            "exit_format",
+            "exit_api",
+        }:
             return self._evaluate_with_error_handling(info, action)
 
         # check if edit action is malformed
@@ -428,8 +459,11 @@ class MLGymEnv(gym.Env):
         # Attempt to run action in container
         observation = ""
         assert self.task is not None
-        timeout = self.task.args.training_timeout if any(command in action for command in TRAIN_COMMANDS) else AGENT_SHORT_ACTION_TIMEOUT
-
+        timeout = (
+            self.task.args.training_timeout
+            if any(command in action for command in TRAIN_COMMANDS)
+            else AGENT_SHORT_ACTION_TIMEOUT
+        )
 
         try:
             observation = self.communicate(
@@ -450,9 +484,13 @@ class MLGymEnv(gym.Env):
                 )
             except RuntimeError as er:
                 observation += er.args[1] if len(er.args) > 1 else ""
-                observation += "\nEXECUTION TIMED OUT AND INTERRUPT FAILED. RESTARTING PROCESS."
+                observation += (
+                    "\nEXECUTION TIMED OUT AND INTERRUPT FAILED. RESTARTING PROCESS."
+                )
                 info["exit_status"] = "early_exit"
-                self.logger.warning(f"Failed to interrupt container: {e}\nRESTARTING PROCESS.")
+                self.logger.warning(
+                    f"Failed to interrupt container: {e}\nRESTARTING PROCESS."
+                )
                 self.reset_container()
                 return observation, 0, True, info
         except RuntimeError as e:
@@ -498,7 +536,6 @@ class MLGymEnv(gym.Env):
         # TODO: copy the contents of the workspace_dir on the container in the logs directory on host.
         # TODO: remove the commands directory from the workspace_dir when working in local mode.
 
-
         self.logger.info("Beginning environment shutdown...")
         try:
             if self.args.memory_enabled:
@@ -510,7 +547,7 @@ class MLGymEnv(gym.Env):
                     host_path=str(self.task_args.memory_path),
                     container_path=str(self.memory_path),
                 )
-            
+
             self.communicate(input="exit")
 
         except KeyboardInterrupt:
@@ -530,10 +567,19 @@ class MLGymEnv(gym.Env):
             # lifecycle, so let's get the container_obj again
             assert self.container_name
             try:
-                self.container_obj = docker.from_env().containers.get(self.container_name)
+                self.container_obj = docker.from_env().containers.get(
+                    self.container_name
+                )
             except Exception as e:
-                self.logger.warning(f"Failed to get fresh container object: {e}", exc_info=True)
-            if self.container_obj.status not in {"paused", "exited", "dead", "stopping"}:
+                self.logger.warning(
+                    f"Failed to get fresh container object: {e}", exc_info=True
+                )
+            if self.container_obj.status not in {
+                "paused",
+                "exited",
+                "dead",
+                "stopping",
+            }:
                 try:
                     self.container_obj.pause()
                 except Exception:
@@ -543,7 +589,9 @@ class MLGymEnv(gym.Env):
                 else:
                     self.logger.info("Agent container paused")
             else:
-                self.logger.info(f"Docker container status: {self.container_obj.status}")
+                self.logger.info(
+                    f"Docker container status: {self.container_obj.status}"
+                )
         else:
             try:
                 self.container_obj.remove(force=True)
@@ -570,25 +618,48 @@ class MLGymEnv(gym.Env):
         """
         assert self.task is not None
         assert self.container_obj is not None
-        self.logger.info(f"Installing and activating custom conda environment.")
-        
+        self.logger.info("Installing and activating custom conda environment.")
+
         env_name = self.task.args.id
-        
+
         # Check if the environment already exists
-        output = self.communicate(f"conda env list | grep {env_name}", timeout_duration=20)
+        output = self.communicate(
+            f"conda env list | grep {env_name}", timeout_duration=20
+        )
         if output != "":
-            self.logger.info(f"Conda environment {env_name} already exists. Activating it.")
-            self.communicate_with_handling(f"conda activate {env_name}", error_msg=f"Failed to activate conda environment {env_name}")
+            self.logger.info(
+                f"Conda environment {env_name} already exists. Activating it."
+            )
+            self.communicate_with_handling(
+                f"conda activate {env_name}",
+                error_msg=f"Failed to activate conda environment {env_name}",
+            )
             return
-        
-        # if environment does not exist, create it 
-        copy_anything_to_container(self.container_obj, self.container_type, str(self.task_args.requirements_path), "/home/agent/task_conda_requirements.txt")
-        self.communicate_with_handling(f"conda create -n {env_name} python=3.11 -y", error_msg="Failed to create task conda environment", timeout_duration=600)
+
+        # if environment does not exist, create it
+        copy_anything_to_container(
+            self.container_obj,
+            self.container_type,
+            str(self.task_args.requirements_path),
+            "/home/agent/task_conda_requirements.txt",
+        )
+        self.communicate_with_handling(
+            f"conda create -n {env_name} python=3.11 -y",
+            error_msg="Failed to create task conda environment",
+            timeout_duration=600,
+        )
 
         # activate the conda environment
-        self.communicate_with_handling(f"conda activate {env_name}", error_msg=f"Failed to activate conda environment {env_name}")
+        self.communicate_with_handling(
+            f"conda activate {env_name}",
+            error_msg=f"Failed to activate conda environment {env_name}",
+        )
 
-        self.communicate_with_handling("python -m pip install -r /home/agent/task_conda_requirements.txt", error_msg=f"Failed to install requirements for conda env {env_name}", timeout_duration=600)
+        self.communicate_with_handling(
+            "python -m pip install -r /home/agent/task_conda_requirements.txt",
+            error_msg=f"Failed to install requirements for conda env {env_name}",
+            timeout_duration=600,
+        )
 
     def get_submission(self, output: str) -> str | None:
         """
@@ -666,15 +737,19 @@ class MLGymEnv(gym.Env):
                 # handling.
                 last_action_string = shlex.quote(input.strip())
                 input = f"export LAST_ACTION={last_action_string}"
-                self._communicate(input, timeout_duration=5, no_output_timeout_duration=5)
+                self._communicate(
+                    input, timeout_duration=5, no_output_timeout_duration=5
+                )
             return output
         else:
             self.container.terminate()  # type: ignore
             self.returncode = 0
             self.communicate_output = ""
             return ""
-            
-    def communicate_with_handling(self, input: str, error_msg: str, timeout_duration: int | float = 25) -> str:
+
+    def communicate_with_handling(
+        self, input: str, error_msg: str, timeout_duration: int | float = 25
+    ) -> str:
         """
         Execute command with error handling.
 
@@ -717,7 +792,12 @@ class MLGymEnv(gym.Env):
             # used to set the correct path for commands directory depending on container type
             assert self.container_obj is not None
             commands_dir = str(self.workspace_dir / "commands")
-            copy_file_to_container(self.container_obj, self.container_type, contents, f"{commands_dir}/{name}")
+            copy_file_to_container(
+                self.container_obj,
+                self.container_type,
+                contents,
+                f"{commands_dir}/{name}",
+            )
             if command["type"] == "source_file":
                 self.communicate_with_handling(
                     f"source {commands_dir}/{name}",
@@ -726,7 +806,9 @@ class MLGymEnv(gym.Env):
                 )
             elif command["type"] == "script":
                 assert self.container_obj is not None
-                self.container_obj.exec_run(f"chmod +x {commands_dir}/{name}", user="root")
+                self.container_obj.exec_run(
+                    f"chmod +x {commands_dir}/{name}", user="root"
+                )
             elif command["type"] == "utility":
                 # nothing to do for utility scripts
                 pass
@@ -773,7 +855,9 @@ class MLGymEnv(gym.Env):
             # when sometimes we get the prints of Killed after we press some "Enter" in stdin
             self.communicate(input="echo 'interrupted'", timeout_duration=5)
             output = self.communicate(input="echo 'interrupted'", timeout_duration=5)
-            assert output.strip().endswith("interrupted"), "container health check failed"
+            assert output.strip().endswith("interrupted"), (
+                "container health check failed"
+            )
         except TimeoutError:
             msg = "Failed to interrupt container"
             raise RuntimeError(msg)
@@ -790,7 +874,11 @@ class MLGymEnv(gym.Env):
             list[tuple[int, str]]: List of (pid, process_name) tuples
         """
         assert self.container_obj is not None
-        pids = self.container_obj.exec_run("ps -eo pid,comm,ppid --no-headers").output.decode().split("\n")
+        pids = (
+            self.container_obj.exec_run("ps -eo pid,comm,ppid --no-headers")
+            .output.decode()
+            .split("\n")
+        )
         pids = [x.split() for x in pids if x]
         if not all_pids:
             # Get just the PIDs of processes that are descendants of parent_pids and not others
@@ -821,7 +909,9 @@ class MLGymEnv(gym.Env):
         """
         pass
 
-    def _evaluate_with_error_handling(self, info: AgentInfo, action: str) -> tuple[str, float, bool, AgentInfo]:
+    def _evaluate_with_error_handling(
+        self, info: AgentInfo, action: str
+    ) -> tuple[str, float, bool, AgentInfo]:
         """
         Handle submission evaluation with comprehensive error handling.
 
@@ -859,7 +949,9 @@ class MLGymEnv(gym.Env):
                 observation = f"Your code produced a valid submission artefact at {submission}.\nBaseline Score: {self.task_args.baseline_scores[0]}\nEvaluation Score: {metrics}".strip()
                 return observation, 0, False, info
             else:
-                self.logger.warning(f"Autosubmitting the last valid submission artefact: {submission}")
+                self.logger.warning(
+                    f"Autosubmitting the last valid submission artefact: {submission}"
+                )
                 self.logger.info(f"Evaluation score: {metrics}")
                 # ! TODO: Add step information along with the score.
                 info["score"].append(metrics)
@@ -874,7 +966,9 @@ class MLGymEnv(gym.Env):
                 observation = "Submission artefact not found. You have to produce a valid submission artefact as described in the task description to validate your results."
                 return observation, 0, False, info
             else:
-                self.logger.warning("No submission artefact found. Exiting with score 0.")
+                self.logger.warning(
+                    "No submission artefact found. Exiting with score 0."
+                )
                 observation = f"Exited ({action})"
                 info["exit_status"] = f"submission_not_found ({action})"
                 return observation, 0, True, info
@@ -900,7 +994,7 @@ class MLGymEnv(gym.Env):
                 observation = f"Exited ({action})"
                 info["exit_status"] = f"{e.__class__.__name__}, {e}, ({action})"
                 return observation, 0, True, info
-        
+
     def _reset_container(self) -> None:
         """
         Reset container to initial state.
@@ -945,7 +1039,12 @@ class MLGymEnv(gym.Env):
         else:
             self.container_name = self._get_container_name(image_name)
         self.container, self.parent_pids = get_container(
-            self.container_name, image_name, container_type=self.container_type, persistent=self.persistent, container_mounts=self.container_mounts, devices=self.devices
+            self.container_name,
+            image_name,
+            container_type=self.container_type,
+            persistent=self.persistent,
+            container_mounts=self.container_mounts,
+            devices=self.devices,
         )
         try:
             client = docker.from_env(timeout=600)
@@ -953,7 +1052,9 @@ class MLGymEnv(gym.Env):
             if "Error while fetching server API version" in str(e):
                 msg = "Docker is not running. Please start Docker and try again."
             else:
-                msg = "Unknown docker exception occurred. Are you sure docker is running?"
+                msg = (
+                    "Unknown docker exception occurred. Are you sure docker is running?"
+                )
             raise RuntimeError(msg) from e
         t0 = time.time()
         self.container_obj = None
@@ -970,7 +1071,9 @@ class MLGymEnv(gym.Env):
         else:
             print(f"{self.persistent=}")
             available_containers = client.containers.list(all=True)
-            available_containers_info = json.dumps([str(c.attrs) for c in available_containers], indent=2)
+            available_containers_info = json.dumps(
+                [str(c.attrs) for c in available_containers], indent=2
+            )
             print(available_containers_info)
             msg = "Failed to get container object."
             raise RuntimeError(msg)
@@ -1025,7 +1128,12 @@ class MLGymEnv(gym.Env):
                 "shopt -s expand_aliases",
                 error_msg="Failed to expand aliases",
             )
-            copy_anything_to_container(self.container_obj, self.container_type, self.args.aliases_file, str(self.workspace_dir / "commands/bash_aliases.sh"))
+            copy_anything_to_container(
+                self.container_obj,
+                self.container_type,
+                self.args.aliases_file,
+                str(self.workspace_dir / "commands/bash_aliases.sh"),
+            )
             self.communicate_with_handling(
                 f"source {str(self.workspace_dir)}/commands/bash_aliases.sh",
                 error_msg="Failed to source bash_aliases.sh",
@@ -1082,9 +1190,7 @@ class MLGymEnv(gym.Env):
         assert self.container is not None
         # Sleep to ensure that the exit code is in the last line
         # See https://github.com/princeton-nlp/SWE-agent/issues/595
-        command_suffix = (
-            f'EXITSTATUS="$?"; sleep 0.01; echo {PROCESS_DONE_MARKER_START}$EXITSTATUS{PROCESS_DONE_MARKER_END}\n'
-        )
+        command_suffix = f'EXITSTATUS="$?"; sleep 0.01; echo {PROCESS_DONE_MARKER_START}$EXITSTATUS{PROCESS_DONE_MARKER_END}\n'
         try:
             self.returncode = None
             cmd = input if input.endswith("\n") else input + "\n"
@@ -1154,15 +1260,29 @@ class MLGymEnv(gym.Env):
         assert self.task is not None
         assert self.container is not None
         assert self.container_obj is not None
-        self.communicate_with_handling(f"rm -rf {str(self.task_workspace)}", error_msg="Failed to remove task workspace")
-        self.communicate_with_handling(f"mkdir {str(self.task_workspace)}", error_msg="Failed to create task workspace")
+        self.communicate_with_handling(
+            f"rm -rf {str(self.task_workspace)}",
+            error_msg="Failed to remove task workspace",
+        )
+        self.communicate_with_handling(
+            f"mkdir {str(self.task_workspace)}",
+            error_msg="Failed to create task workspace",
+        )
 
         if self.args.memory_enabled and self.task_args.memory_path.exists():
-            # copy existing memory file from local folder to container    
-            copy_anything_to_container(container=self.container_obj, container_type=self.args.container_type, host_path=str(self.task_args.memory_path), container_path=str(self.workspace_dir))
+            # copy existing memory file from local folder to container
+            copy_anything_to_container(
+                container=self.container_obj,
+                container_type=self.args.container_type,
+                host_path=str(self.task_args.memory_path),
+                container_path=str(self.workspace_dir),
+            )
         elif self.args.memory_enabled:
             # create an empty memory file if doesn't exist
-            self.communicate_with_handling(f"touch {str(self.memory_path)}", error_msg="Failed to create an empty memory file")
+            self.communicate_with_handling(
+                f"touch {str(self.memory_path)}",
+                error_msg="Failed to create an empty memory file",
+            )
 
         for dataset in self.task.args._datasets:
             assert isinstance(dataset, DatasetConfig)
@@ -1170,21 +1290,37 @@ class MLGymEnv(gym.Env):
                 # Get list of files in dataset.data_path
                 data_path = Path(dataset.data_path)
                 # Copy data folder to agent workspace directory.
-                copy_anything_to_container(container=self.container_obj, container_type=self.args.container_type, host_path=str(data_path), container_path=f"{str(self.task_workspace)}/data")
+                copy_anything_to_container(
+                    container=self.container_obj,
+                    container_type=self.args.container_type,
+                    host_path=str(data_path),
+                    container_path=f"{str(self.task_workspace)}/data",
+                )
 
                 # set read-only flags for all files in the data dir
                 output = self.communicate(f"ls {str(self.task_workspace)}/data/")
                 objects = output.strip().split("\n")
                 for object in objects:
-                    self.container_obj.exec_run(f"chmod -R 555 {str(self.task_workspace)}/data/{object}", user="root")
+                    self.container_obj.exec_run(
+                        f"chmod -R 555 {str(self.task_workspace)}/data/{object}",
+                        user="root",
+                    )
 
         # copy all starter code files to workspace_dir
         if self.task.args.starter_code is not None:
             for path in self.task.args.starter_code:
-                copy_anything_to_container(container=self.container_obj, container_type=self.args.container_type, host_path=str(path), container_path=f"{str(self.task_workspace)}/")
-        
+                copy_anything_to_container(
+                    container=self.container_obj,
+                    container_type=self.args.container_type,
+                    host_path=str(path),
+                    container_path=f"{str(self.task_workspace)}/",
+                )
+
         if self.task.args.evaluation_read_only:
             # set read and execute permissions for evaluation script
-            evaluation_paths = [Path(self.task_workspace)/path for path in self.task.args.evaluation_paths]
+            evaluation_paths = [
+                Path(self.task_workspace) / path
+                for path in self.task.args.evaluation_paths
+            ]
             for eval_path in evaluation_paths:
                 self.container_obj.exec_run(f"chmod 555 {str(eval_path)}", user="root")
