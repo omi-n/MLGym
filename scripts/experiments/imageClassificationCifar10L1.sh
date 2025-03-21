@@ -22,14 +22,14 @@ run_experiment() {
         --task_config_path tasks/imageClassificationCifar10L1.yaml \
         --model "$model" \
         --per_instance_cost_limit 4.00 \
-        --config_file configs/agents/better_thought_action_parser_with_insert.yaml \
+        --agent_config_path configs/agents/default.yaml \
         --temp 0 \
         --gpus $gpu_start $((gpu_start+1)) $((gpu_start+2)) $((gpu_start+3)) \
         --gpus_per_agent 1 \
         --num_agents 4 \
         --max_steps 50 \
         --suffix parallel_agents \
-        --aliases_file ./docker/aliases_docker.sh
+        --aliases_file ./docker/aliases.sh
 }
 
 # Initialize counters
@@ -70,10 +70,3 @@ done
 wait
 
 echo "All experiments completed!"
-
-python scripts/process_results.py \
-    --traj_parent_dir trajectories/deepak/ \
-    --traj_pattern imageClassificationCifar10L1__better_thought_action_parser_with_insert__t-0.00__p-0.95__c-4.00__install-0__parallel_agents \
-    --models "${MODELS[@]}" \
-    --priority_metric "accuracy" \
-    --metric_direction maximize > results/imageClassificationCifar10L1.res

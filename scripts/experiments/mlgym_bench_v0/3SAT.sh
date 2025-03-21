@@ -19,13 +19,13 @@ run_experiment() {
         --task_config_path tasks/3SATTime.yaml \
         --model "$model" \
         --per_instance_cost_limit 4.00 \
-        --config_file configs/agents/better_thought_action_parser_with_insert.yaml \
+        --agent_config_path configs/agents/default.yaml \
         --temp 0 \
         --gpus_per_agent 0 \
         --num_agents 4 \
         --max_steps 50 \
         --suffix parallel_agents \
-        --aliases_file ./docker/aliases_docker.sh
+        --aliases_file ./docker/aliases.sh
 }
 
 # Initialize counters
@@ -62,10 +62,3 @@ done
 wait
 
 echo "All experiments completed!"
-
-python scripts/process_results.py \
-    --traj_parent_dir trajectories/deepak/ \
-    --traj_pattern 3SATHeuristic__better_thought_action_parser_with_insert__t-0.00__p-0.95__c-4.00__install-0__parallel_agents \
-    --models "${MODELS[@]}" \
-    --priority_metric "Time" \
-    --metric_direction minimize > results/3SAT.res
