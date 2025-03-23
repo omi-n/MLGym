@@ -1,6 +1,7 @@
 """
 Copyright (c) Meta Platforms, Inc. and affiliates.
 """
+
 import json
 import pickle
 import time
@@ -24,12 +25,16 @@ def evaluate_dpll(test_data_path: str) -> tuple[float, int]:
         else:
             return 1e8, int(1e8)
         sample_decisions = dpll_solver.num_decisions
-        print(ind, correct, incorrect, sample_decisions, alpha)
         num_decisions += sample_decisions
     wall_clock = round(time.time() - start, 3)
-    print(
-        f"Time: {wall_clock} | Correct: {correct} | Incorrect: {incorrect} | Decisions: {num_decisions}"
-    )
+    metrics = {
+        "Time": wall_clock,
+        "Correct": correct,
+        "Incorrect": incorrect,
+        "Decisions": num_decisions,
+    }
+    print(json.dumps(metrics))
     return wall_clock, num_decisions
 
-evaluate_dpll('data/dataset.pkl')
+
+evaluate_dpll("data/dataset.pkl")
