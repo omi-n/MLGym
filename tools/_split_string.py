@@ -34,7 +34,16 @@ class Flake8Error:
     @classmethod
     def from_line(cls, line: str):
         prefix, _sep, problem = line.partition(": ")
-        filename, line_number, col_number = prefix.split(":")
+        parts = prefix.split(":")
+
+        if len(parts) == 3:
+            filename, line_number, col_number = parts
+        elif len(parts) == 2:
+            filename, line_number = parts
+            col_number = "0"  # Default column number when missing
+        else:
+            raise ValueError(f"Unexpected flake8 output format: {line}")
+
         return cls(filename, int(line_number), int(col_number), problem)
 
 
