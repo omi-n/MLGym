@@ -1,16 +1,15 @@
-Rank,1,2,3,4,5,6
-House Price,gpt-o1,claude-35-sonnet-new,llama3-405b-tools,gemini-15-pro,gpt4o2,baseline
-3-SAT,gpt4o2,gpt-o1,llama3-405b-tools,gemini-15-pro,claude-35-sonnet-new,baseline
-CIFAR-10,claude-35-sonnet-new,gpt-o1,gemini-15-pro,gpt4o2,llama3-405b-tools,baseline
-Fashion MNIST,claude-35-sonnet-new,gpt4o2,gemini-15-pro,gpt-o1,llama3-405b-tools,baseline
-MS-COCO,llama3-405b-tools,baseline,gpt-o1,gemini-15-pro,claude-35-sonnet-new,gpt4o2
-Language Modeling,gpt-o1,gemini-15-pro,gpt4o2,claude-35-sonnet-new,baseline,llama3-405b-tools
-MNLI,gemini-15-pro,gpt-o1,claude-35-sonnet-new,gpt4o2,llama3-405b-tools,baseline
-Battle of Sexes,gemini-15-pro,gpt-o1,claude-35-sonnet-new,llama3-405b-tools,gpt4o2,baseline
-Prisoners Dilemma,gemini-15-pro,gpt4o2,gpt-o1,claude-35-sonnet-new,llama3-405b-tools,baseline
-Blotto,gpt-o1,claude-35-sonnet-new,gemini-15-pro,gpt4o2,llama3-405b-tools,baseline
-Breakout,gemini-15-pro,gpt-o1,llama3-405b-tools,baseline,claude-35-sonnet-new,gpt4o2
-Meta Maze,claude-35-sonnet-new,gpt-o1,llama3-405b-tools,gemini-15-pro,baseline,gpt4o2
-Mountain Car Continuous,gpt-o1,gemini-15-pro,claude-35-sonnet-new,baseline,llama3-405b-tools,gpt4o2
-Plackett-Luce,gpt-o1,gemini-15-pro,claude-35-sonnet-new,llama3-405b-tools,gpt4o2,baseline
-BORDA,gpt-o1,gemini-15-pro,claude-35-sonnet-new,llama3-405b-tools,gpt4o2,baseline
+Rank,1,2,3,4,5,6,7,8
+House Price,gpt-o1,claude-37-sonnet,claude-35-sonnet-new,llama3-405b-tools,gemini-15-pro,gpt4o2,gemini-20-flash-thinking,baseline
+3-SAT,claude-37-sonnet,gemini-20-flash-thinking,gpt4o2,gpt-o1,llama3-405b-tools,gemini-15-pro,claude-35-sonnet-new,baseline
+CIFAR-10,claude-37-sonnet,claude-35-sonnet-new,gpt-o1,gemini-15-pro,gpt4o2,gemini-20-flash-thinking,llama3-405b-tools,baseline
+Fashion MNIST,claude-35-sonnet-new,claude-37-sonnet,gpt4o2,gemini-20-flash-thinking,gemini-15-pro,gpt-o1,llama3-405b-tools,baseline
+Language Modeling,gemini-20-flash-thinking,gpt-o1,gemini-15-pro,gpt4o2,claude-35-sonnet-new,baseline,claude-37-sonnet,llama3-405b-tools
+MNLI,gemini-20-flash-thinking,gemini-15-pro,claude-37-sonnet,gpt-o1,claude-35-sonnet-new,gpt4o2,llama3-405b-tools,baseline
+Battle of Sexes,gemini-15-pro,gemini-20-flash-thinking,gpt-o1,claude-35-sonnet-new,claude-37-sonnet,llama3-405b-tools,gpt4o2,baseline
+Prisoners Dilemma,gemini-15-pro,claude-37-sonnet,gpt4o2,gpt-o1,claude-35-sonnet-new,llama3-405b-tools,gemini-20-flash-thinking,baseline
+Blotto,gpt-o1,gemini-20-flash-thinking,claude-35-sonnet-new,claude-37-sonnet,gemini-15-pro,gpt4o2,llama3-405b-tools,baseline
+Breakout,gemini-15-pro,gpt-o1,llama3-405b-tools,baseline,claude-37-sonnet,gemini-20-flash-thinking,claude-35-sonnet-new,gpt4o2
+Meta Maze,claude-35-sonnet-new,gemini-20-flash-thinking,gpt-o1,llama3-405b-tools,gemini-15-pro,baseline,gpt4o2,claude-37-sonnet
+Mountain Car Continuous,gpt-o1,gemini-15-pro,gemini-20-flash-thinking,claude-35-sonnet-new,baseline,llama3-405b-tools,gpt4o2,claude-37-sonnet
+Plackett-Luce,gpt-o1,gemini-15-pro,gemini-20-flash-thinking,claude-35-sonnet-new,claude-37-sonnet,gpt4o2,llama3-405b-tools,baseline
+BORDA,gpt-o1,gemini-15-pro,gemini-20-flash-thinking,claude-35-sonnet-new,claude-37-sonnet,gpt4o2,llama3-405b-tools,baseline

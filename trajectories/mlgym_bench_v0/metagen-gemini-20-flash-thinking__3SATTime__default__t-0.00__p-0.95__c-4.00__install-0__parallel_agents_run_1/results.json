@@ -1,0 +1,87 @@
+{
+  "agent": [
+    {
+      "Time": 13.614,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 73867
+    },
+    {
+      "Time": 13.575,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 73867
+    },
+    {
+      "Time": 14.547,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 73867
+    },
+    {
+      "Time": 14.721,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 73867
+    },
+    {
+      "Time": 14.638,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 73867
+    },
+    {
+      "Time": 14.604,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 73867
+    },
+    {
+      "Time": 14.436,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 73867
+    },
+    {
+      "Time": 14.791,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 73867
+    },
+    {
+      "Time": 14.386,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 73867
+    },
+    {
+      "Time": 14.423,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 73867
+    },
+    {
+      "Time": 15.434,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 73935
+    },
+    {
+      "Time": 15.318,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 73935
+    },
+    {
+      "Time": 15.282,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 73935
+    }
+  ],
+  "baseline": {
+    "Time": 16.158,
+    "Correct": 24000.0,
+    "Incorrect": 0.0
+  }
+}
