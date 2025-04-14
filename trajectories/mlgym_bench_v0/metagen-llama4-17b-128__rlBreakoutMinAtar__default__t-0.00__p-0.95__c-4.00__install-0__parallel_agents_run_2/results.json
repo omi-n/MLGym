@@ -1,0 +1,20 @@
+{
+  "agent": [
+    {
+      "Reward Mean": 0.0,
+      "Reward Std": 0.0
+    },
+    {
+      "Reward Mean": 35.962032318115234,
+      "Reward Std": 22.4636287689209
+    },
+    {
+      "Reward Mean": 35.962032318115234,
+      "Reward Std": 22.4636287689209
+    }
+  ],
+  "baseline": {
+    "Reward Mean": 48.81718826293945,
+    "Reward Std": 30.35857582092285
+  }
+}

@@ -3,11 +3,11 @@
   "trajectory": [
     {
       "state": "{\"open_file\": \"n/a\", \"working_dir\": \"/home/agent/workspace\"}",
-      "response": "DISCUSSION\nI'll examine the evaluation script to understand how our model will be evaluated and ensure our submission is in the correct format.\n\n```\nopen evaluate.py\n```",
-      "thought": "Exit due to format error",
-      "action": "exit_format",
-      "execution_time": 5.29478763975203,
-      "observation": "Exited (exit_format)"
+      "response": "Exit due to context window",
+      "thought": "Exit due to context window",
+      "action": "exit_context",
+      "execution_time": 5.484077336266637,
+      "observation": "Exited (exit_context)"
     }
   ],
   "history": [
@@ -23,21 +23,21 @@
     },
     {
       "role": "assistant",
-      "content": "DISCUSSION\nI'll examine the evaluation script to understand how our model will be evaluated and ensure our submission is in the correct format.\n\n```\nopen evaluate.py\n```",
-      "thought": "Exit due to format error",
-      "action": "exit_format",
+      "content": "Exit due to context window",
+      "thought": "Exit due to context window",
+      "action": "exit_context",
       "agent": "primary_3"
     }
   ],
   "info": {
     "model_stats": {
-      "total_cost": 0.021048,
-      "task_cost": 0.021048,
-      "tokens_sent": 22557,
-      "tokens_received": 12327,
-      "api_calls": 4
+      "total_cost": 0.0,
+      "task_cost": 0.0,
+      "tokens_sent": 0,
+      "tokens_received": 0,
+      "api_calls": 0
     },
-    "exit_status": "evaluation_format_error (exit_format)",
+    "exit_status": "evaluation_format_error (exit_context)",
     "submission": null,
     "score": [],
     "summarizer": {}

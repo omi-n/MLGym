@@ -17,14 +17,18 @@ from matplotlib.font_manager import FontProperties, fontManager
 
 MODELS = [
     "llama3-405b-tools",
-    # "deepseek_r1",
+    "deepseek-r1",
     "gpt4o2",
     "claude-35-sonnet-new",
     "claude-37-sonnet",
     "gemini-15-pro",
     "gemini-20-flash-thinking",
-    # "gemini-20-pro",
+    "gemini-20-pro",
+    "gemini-25-pro",
     "gpt-o1",
+    "gpt-o3-mini",
+    "llama4-17b-16",
+    "llama4-17b-128",
 ]
 
 MODEL_NAME_MAP = {

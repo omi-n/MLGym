@@ -1,16 +1,10 @@
 {
   "agent": [
     {
-      "accuracy": 0.8984
+      "accuracy": 0.3884
     },
     {
-      "accuracy": 0.9374
-    },
-    {
-      "accuracy": 0.937
-    },
-    {
-      "accuracy": 0.937
+      "accuracy": 0.4389
     }
   ],
   "baseline": {

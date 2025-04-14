@@ -577,7 +577,11 @@ def parse_trajectory_filename(filepath: str) -> Dict[str, str]:
     # Try full pattern first
     match = re.match(full_pattern, parent_dir)
     if match:
-        parsed["model"] = match.group(1)
+        # Handle model name - remove metagen- prefix if present
+        model_name = match.group(1)
+        if model_name.startswith("metagen-"):
+            model_name = model_name[8:]  # Remove "metagen-" prefix
+        parsed["model"] = model_name
         parsed["task"] = match.group(2)
         parsed["parser"] = match.group(3)
         parsed["temperature"] = match.group(4)
@@ -605,7 +609,11 @@ def parse_trajectory_filename(filepath: str) -> Dict[str, str]:
     # Fallback to a more lenient approach if none of the patterns match
     parts = parent_dir.split("__")
     if len(parts) >= 3:
-        parsed["model"] = parts[0]
+        # Handle model name - remove metagen- prefix if present
+        model_name = parts[0]
+        if model_name.startswith("metagen-"):
+            model_name = model_name[8:]  # Remove "metagen-" prefix
+        parsed["model"] = model_name
         parsed["task"] = parts[1]
 
         # Try to extract other parameters if they exist

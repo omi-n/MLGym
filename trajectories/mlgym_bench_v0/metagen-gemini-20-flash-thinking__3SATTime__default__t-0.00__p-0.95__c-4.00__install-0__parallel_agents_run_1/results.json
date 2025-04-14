@@ -1,79 +1,43 @@
 {
   "agent": [
     {
-      "Time": 13.614,
-      "Correct": 23997,
-      "Incorrect": 0,
-      "Decisions": 73867
-    },
-    {
-      "Time": 13.575,
-      "Correct": 23997,
-      "Incorrect": 0,
-      "Decisions": 73867
-    },
-    {
-      "Time": 14.547,
-      "Correct": 23997,
-      "Incorrect": 0,
-      "Decisions": 73867
-    },
-    {
-      "Time": 14.721,
-      "Correct": 23997,
-      "Incorrect": 0,
-      "Decisions": 73867
-    },
-    {
-      "Time": 14.638,
-      "Correct": 23997,
-      "Incorrect": 0,
-      "Decisions": 73867
-    },
-    {
-      "Time": 14.604,
-      "Correct": 23997,
-      "Incorrect": 0,
-      "Decisions": 73867
-    },
-    {
-      "Time": 14.436,
-      "Correct": 23997,
-      "Incorrect": 0,
-      "Decisions": 73867
-    },
-    {
-      "Time": 14.791,
-      "Correct": 23997,
-      "Incorrect": 0,
-      "Decisions": 73867
-    },
-    {
-      "Time": 14.386,
-      "Correct": 23997,
-      "Incorrect": 0,
-      "Decisions": 73867
-    },
-    {
-      "Time": 14.423,
-      "Correct": 23997,
-      "Incorrect": 0,
-      "Decisions": 73867
-    },
-    {
-      "Time": 15.434,
+      "Time": 14.415,
       "Correct": 23997,
       "Incorrect": 0,
       "Decisions": 73935
     },
     {
-      "Time": 15.318,
+      "Time": 14.361,
       "Correct": 23997,
       "Incorrect": 0,
       "Decisions": 73935
     },
     {
-      "Time": 15.282,
+      "Time": 14.347,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 73935
+    },
+    {
+      "Time": 14.33,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 73935
+    },
+    {
+      "Time": 14.268,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 73935
+    },
+    {
+      "Time": 14.365,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 73935
+    },
+    {
+      "Time": 14.697,
       "Correct": 23997,
       "Incorrect": 0,
       "Decisions": 73935

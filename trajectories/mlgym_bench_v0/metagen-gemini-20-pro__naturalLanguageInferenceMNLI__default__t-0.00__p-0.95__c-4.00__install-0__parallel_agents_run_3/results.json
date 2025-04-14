@@ -1,13 +1,25 @@
 {
   "agent": [
     {
-      "validation_accuracy": 83.76974019358126
+      "validation_accuracy": 84.0346408558329
     },
     {
-      "validation_accuracy": 83.37238920020377
+      "validation_accuracy": 83.5965359144167
     },
     {
-      "validation_accuracy": 83.2093734080489
+      "validation_accuracy": 31.879775853285786
+    },
+    {
+      "validation_accuracy": 84.1365257259297
+    },
+    {
+      "validation_accuracy": 83.6474783494651
+    },
+    {
+      "validation_accuracy": 83.7493632195619
+    },
+    {
+      "validation_accuracy": 83.7493632195619
     }
   ],
   "baseline": {
