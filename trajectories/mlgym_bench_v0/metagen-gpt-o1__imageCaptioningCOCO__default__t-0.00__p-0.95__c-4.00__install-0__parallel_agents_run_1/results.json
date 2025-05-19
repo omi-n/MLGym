@@ -1,0 +1,10 @@
+{
+  "agent": [
+    {
+      "BLEU Score": 0.0
+    }
+  ],
+  "baseline": {
+    "BLEU Score": 0.2793602467563585
+  }
+}

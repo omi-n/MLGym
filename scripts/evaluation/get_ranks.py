@@ -356,8 +356,8 @@ def plot_aup_vs_cost(
     ax.set_ylabel("Best Attempt AUP@4", fontsize=10)
     ax.set_xlim(0, xlim)  # Changed to start from 0 to show all points
     ax.set_xticks(xticks, xticks, fontsize=8)
-    ax.set_ylim(0.895, 1.205)  # Set y-limits based on the data range
-    yticks = np.arange(0.9, 1.25, 0.05)
+    ax.set_ylim(1.0, 1.5)  # Set y-limits based on the data range
+    yticks = np.arange(1.0, 1.5, 0.05)
     yticks = [np.round(y, 2) for y in yticks]
     ax.set_yticks(yticks, yticks, fontsize=8)
 

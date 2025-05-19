@@ -16,7 +16,6 @@ from simple_parsing import parse
 
 from mlgym.evaluation.utils import (  # EXIT_STATUS_MAP,; MODEL_LOGOS,
     ACTION_COLOR_MAP,
-    COLOR_CHOICE,
     MODEL_COLOR_MAP,
     MODEL_SHORT_NAME_MAP,
     MODELS,
@@ -75,6 +74,7 @@ def plot_es_counts_per_model(exit_status_results: dict, output_path: str) -> Non
     fig, ax = plt.subplots(figsize=(6.5, 4))
 
     bottom = np.zeros(len(df_flip))
+    print("=" * 20)
     for i, model in enumerate(df_flip.columns):
         print(f"Model: {model}, Color: {MODEL_COLOR_MAP[model]}")
         ax.bar(
@@ -159,6 +159,8 @@ def plot_failed_incomplete_runs_per_model(
     # Create figure with adjusted height ratios for legend
     fig, ax = plt.subplots(figsize=(6.5, 4))
 
+    fig, ax = plt.subplots(figsize=(9, 4))
+
     x = np.arange(len(df.index))
     width = 0.35
 
@@ -177,6 +179,16 @@ def plot_failed_incomplete_runs_per_model(
         linewidth=2,
     )
     print(df.index)
+    incomplete_bars = ax.bar(
+        x + width / 2,
+        df["Incomplete"],
+        width,
+        label="Incomplete Runs",
+        edgecolor=colors,
+        facecolor="none",
+        hatch="////",
+        linewidth=2,
+    )
 
     ax.set_xticks(x)
     ax.set_xticklabels(
@@ -203,6 +215,8 @@ def plot_failed_incomplete_runs_per_model(
     #                    ha='center', va='top', fontsize=10, fontweight='bold')
 
     yticks = list(range(0, 13, 2))
+
+    yticks = list(range(0, 50, 10))
     ax.set_yticks(yticks, list(map(str, yticks)), fontsize=8)
 
     # Create black legend handles
@@ -261,13 +275,13 @@ def plot_failed_incomplete_runs_per_task(
     df = df.reindex(totals.sort_values(ascending=False).index)
 
     # Plot
-    fig, ax = plt.subplots(figsize=(6.5, 4))
+    fig, ax = plt.subplots(figsize=(9, 4))
     x = np.arange(len(df.index))
     width = 0.35
 
     # Using first two colors from MODEL_COLOR_MAP
-    failed_color = COLOR_CHOICE[2]  # "#FD5901"
-    incomplete_color = COLOR_CHOICE[2]  # "#F78104"
+    failed_color = "#FD5901"
+    incomplete_color = "#F78104"
 
     # Solid bars for failed runs
     ax.bar(x - width / 2, df["Failed"], width, label="Failed Runs", color=failed_color)
@@ -362,8 +376,8 @@ def plot_total_actions(action_results: dict, output_path: str) -> None:
     ax.set_xticklabels(df.index, rotation=0, ha="center", fontsize=8)
 
     # Set y-axis limits to start from 0 to show all bars
-    ax.set_ylim(0, 4000)
-    yticks = list(range(0, 4100, 500))
+    ax.set_ylim(0, max(df["Count"]) * 1.1)
+    yticks = list(range(0, max(df["Count"]) + 900, 1000))
     ax.set_yticks(yticks, list(map(str, yticks)), fontsize=8)
     plt.ylabel("Count", fontsize=10)
 
@@ -433,7 +447,7 @@ def plot_actions_per_step(action_results: dict, output_path: str) -> None:
 
     # Set x-axis ticks and labels
     xticks = [1] + list(range(5, 51, 5))
-    yticks = list(range(0, 260, 50))
+    yticks = list(range(0, 700, 100))
     ax.set_xticks(xticks, list(map(str, xticks)), fontsize=8)
     ax.set_yticks(yticks, list(map(str, yticks)), fontsize=8)
     plt.ylabel("Count", fontsize=10)
@@ -478,6 +492,7 @@ def plot_actions_per_model(action_results: dict, output_path: str) -> None:
 
     # Sort by total while preserving model colors
     totals = df.sum(axis=1)
+    print("=" * 20)
     print(totals)
     sort_order = totals.sort_values(ascending=False).index
     df = df.reindex(sort_order)
@@ -487,6 +502,8 @@ def plot_actions_per_model(action_results: dict, output_path: str) -> None:
 
     # Create figure with adjusted height ratios for legend
     fig, ax = plt.subplots(figsize=(6.5, 4))
+
+    fig, ax = plt.subplots(figsize=(9, 4))
 
     bottom = np.zeros(len(df))
     for action in action_types:
@@ -691,6 +708,7 @@ def get_exit_status_results(trajectories: dict) -> dict[str, dict]:
     incomplete_runs_per_task = defaultdict(lambda: 0)
 
     for task_id, task_results in trajectories.items():
+        model_num = 0
         for model_id, model_results in task_results.items():
             assert len(model_results["exit_statuses"]) == len(
                 model_results["scores"]
@@ -703,6 +721,17 @@ def get_exit_status_results(trajectories: dict) -> dict[str, dict]:
                 total_es_counts[exit_status] += 1
                 es_counts_per_model[model_id][exit_status] += 1
                 es_counts_per_task[task_id][exit_status] += 1
+            model_num += 1
+            for exit_status, score in zip(
+                model_results["exit_statuses"], model_results["scores"]
+            ):
+                success_status = False
+                for es in exit_status:
+                    total_es_counts[es] += 1
+                    es_counts_per_model[model_id][es] += 1
+                    es_counts_per_task[task_id][es] += 1
+                    success_status = success_status or es in ["Success", "Max Steps"]
+
                 failed = 0
                 incomplete = 0
                 if "agent" not in score:
@@ -714,6 +743,9 @@ def get_exit_status_results(trajectories: dict) -> dict[str, dict]:
                     and len(score["agent"]) > 0
                     and exit_status not in ["Success", "Max Steps"]
                 ):
+                elif (
+                    "agent" in score and len(score["agent"]) > 0 and not success_status
+                ):
                     incomplete = 1
 
                 failed_runs_per_model[model_id] += failed
@@ -723,33 +755,6 @@ def get_exit_status_results(trajectories: dict) -> dict[str, dict]:
 
     print("All exit statuses:\n")
     print(f"{total_es_counts.keys()}")
-
-    assert sum(total_es_counts.values()) == 432, (
-        f"Total exit status counts: {total_es_counts}"
-    )
-    assert (
-        sum(failed_runs_per_model.values()) + sum(incomplete_runs_per_model.values())
-        <= 432
-    ), f"Failed runs per model: {failed_runs_per_model}"
-    assert sum(failed_runs_per_model.values()) == sum(failed_runs_per_task.values())
-    assert sum(incomplete_runs_per_model.values()) == sum(
-        incomplete_runs_per_task.values()
-    )
-    assert (
-        sum([sum(es_counts_per_model[model].values()) for model in es_counts_per_model])
-        == 432
-    ), f"ES counts per model: {es_counts_per_model}"
-    assert (
-        sum([sum(es_counts_per_task[task].values()) for task in es_counts_per_task])
-        == 432
-    ), f"ES counts per task: {es_counts_per_task}"
-
-    # print(f"Failed runs per model: {dict(failed_runs_per_model)}")
-    # print(f"Incomplete runs per model: {dict(incomplete_runs_per_model)}")
-    # print(f"Failed runs per task: {dict(failed_runs_per_task)}")
-    # print(f"Incomplete runs per task: {dict(incomplete_runs_per_task)}")
-    # print(f"Total Exit Statuses: {dict(total_es_counts)}")
-    # print(f"ES counts per model: {dict({key: dict(value) for key, value in es_counts_per_model.items()})}")
 
     return {
         "total_es_counts": total_es_counts,

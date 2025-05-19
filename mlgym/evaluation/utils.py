@@ -16,50 +16,56 @@ import seaborn as sns
 from matplotlib.font_manager import FontProperties, fontManager
 
 MODELS = [
-    "llama3-405b-tools",
     "deepseek-r1",
-    "gpt4o2",
     "claude-35-sonnet-new",
     "claude-37-sonnet",
     "gemini-15-pro",
     "gemini-20-flash-thinking",
-    "gemini-20-pro",
+    # "gemini-20-pro",
     "gemini-25-pro",
+    "gpt4o2",
     "gpt-o1",
     "gpt-o3-mini",
+    "llama3-405b-tools",
     "llama4-17b-16",
     "llama4-17b-128",
 ]
 
 MODEL_NAME_MAP = {
-    "llama3-405b-tools": "Llama-3.1-405B-Instruct",
-    "deepseek_r1": "DeepSeek-R1",
-    "gpt-o1": "OpenAI O1-preview",
-    "claude-35-sonnet-new": "Claude-3.5-Sonnet",
-    "claude-37-sonnet": "Claude-3.7-Sonnet",
-    "gemini-15-pro": "Gemini-1.5-Pro",
-    "gemini-20-flash-thinking": "Gemini-20-Flash",
-    "gemini-20-pro": "Gemini-20-Pro",
-    "baseline": "Baseline",
-    "gpt4o2": "GPT-4o",
-}
-
-MODEL_SHORT_NAME_MAP = {
-    "llama3-405b-tools": "Llama-405B",
-    "deepseek_r1": "R1",
-    "gpt-o1": "O1-preview",
+    "llama3-405b-tools": "Llama-3.1-405B",
+    "deepseek-r1": "DeepSeek-R1",
+    "gpt-o1": "o1-preview",
     "claude-35-sonnet-new": "Claude-3.5-Sonnet",
     "claude-37-sonnet": "Claude-3.7-Sonnet",
     "gemini-15-pro": "Gemini-1.5-Pro",
     "gemini-20-flash-thinking": "Gemini-2.0-Flash",
     "gemini-20-pro": "Gemini-2.0-Pro",
-    "baseline": "Baseline",
+    "gemini-25-pro": "Gemini-2.5-Pro",
     "gpt4o2": "GPT-4o",
+    "gpt-o3-mini": "o3-mini",
+    "llama4-17b-16": "Llama-4-Scout",
+    "llama4-17b-128": "Llama-4-Maverick",
+}
+
+MODEL_SHORT_NAME_MAP = {
+    "llama3-405b-tools": "Llama-405B",
+    "deepseek_r1": "R1",
+    "gpt-o1": "o1-preview",
+    "claude-35-sonnet-new": "Claude-3.5-Sonnet",
+    "claude-37-sonnet": "Claude-3.7-Sonnet",
+    "gemini-15-pro": "Gemini-1.5-Pro",
+    "gemini-20-flash-thinking": "Gemini-2.0-Flash",
+    "gemini-20-pro": "Gemini-2.0-Pro",
+    "gemini-25-pro": "Gemini-2.5-Pro",
+    "gpt4o2": "GPT-4o",
+    "gpt-o3-mini": "o3-mini",
+    "llama4-17b-16": "Llama-4-Scout",
+    "llama4-17b-128": "Llama-4-Maverick",
 }
 
 MODEL_COST_MAP = {
     "llama3-405b-tools": {"input_price": 3.5e-06, "output_price": 3.5e-06},
-    "deepseek_r1": {"input_price": 0.55e-06, "output_price": 2.19e-06},
+    "deepseek-r1": {"input_price": 0.55e-06, "output_price": 2.19e-06},
     "gpt4o2": {"input_price": 2.5e-06, "output_price": 10e-06},
     "claude-35-sonnet-new": {"input_price": 3e-06, "output_price": 15e-06},
     "claude-37-sonnet": {"input_price": 3e-06, "output_price": 15e-06},
@@ -75,7 +81,14 @@ MODEL_COST_MAP = {
         "input_price": 1.25e-6,  # $1.25 per 1M tokens for <= 128k
         "output_price": 5e-6,  # $5.00 per 1M tokens for <= 128k
     },
+    "gemini-25-pro": {
+        "input_price": 1.25e-6,  # $1.25 per 1M tokens for <= 128k
+        "output_price": 10e-6,  # $5.00 per 1M tokens for <= 128k
+    },
     "gpt-o1": {"input_price": 15e-06, "output_price": 60e-06},
+    "gpt-o3-mini": {"input_price": 1.1e-06, "output_price": 4.40e-06},
+    "llama4-17b-16": {"input_price": 0.18e-6, "output_price": 0.59e-6},
+    "llama4-17b-128": {"input_price": 0.27e-6, "output_price": 0.85e-6},
 }
 
 MODEL_LOGOS = {
@@ -87,51 +100,86 @@ MODEL_LOGOS = {
     "gemini-15-pro": ("assets/logos/google-logo.png", 0.15),
     "gemini-20-flash-thinking": ("assets/logos/google-logo.png", 0.15),
     "gemini-20-pro": ("assets/logos/google-logo.png", 0.15),
+    "gemini-25-pro": ("assets/logos/google-logo.png", 0.15),
     "gpt4o2": ("assets/logos/openai-green.png", 0.15),
+    "gpt-o3-mini": ("assets/logos/openai-logo.png", 0.15),
+    "llama4-17b-16": ("assets/logos/meta-logo.png", 0.15),
+    "llama4-17b-128": ("assets/logos/meta-logo.png", 0.15),
 }
 
 MODEL_MARKER_MAP = {
     "llama3-405b-tools": "-",  # solid line
-    "deepseek_r1": (0, (1, 1, 3, 1)),  # dash-dot-dash line
+    "deepseek-r1": (0, (1, 1, 3, 1)),  # dash-dot-dash line
     "claude-35-sonnet-new": "--",  # dashed line
     "claude-37-sonnet": (0, (3, 1, 1, 1)),  # dash-dot-dot line
     "gemini-15-pro": ":",  # dash-dot line
     "gemini-20-flash-thinking": (0, (1, 1)),  # densely dotted line
     "gemini-20-pro": (0, (5, 1, 1, 1, 1, 1)),  # dash-dot-dot-dot line
+    "gemini-25-pro": (0, (3, 1, 3, 1, 1, 1)),  # dash-dot-dash-dot line
     "gpt4o2": "-.",  # dotted line
-    # "gpt-o1": (0, (3, 5, 1, 5)), # dash-dot-dot line
-    "gpt-o1": (5, (10, 3)),
+    "gpt-o1": (5, (10, 3)),  # custom pattern
+    "gpt-o3-mini": (0, (7, 3, 1, 3)),  # dash-dot with longer dashes
+    "llama4-17b-16": (0, (5, 2, 1, 2, 1, 2)),  # complex dash-dot pattern
+    "llama4-17b-128": (0, (3, 3, 1, 3, 1, 3, 1, 3)),  # alternating dash-dot pattern
 }
 
 EXIT_STATUS_MAP = {
-    "autosubmission (exit_api)": "API",
-    "autosubmission (exit_context)": "Context",
-    "autosubmission (exit_cost)": "Cost",
-    "autosubmission (exit_format)": "Format",
-    "autosubmission (max_steps)": "Max Steps",
-    "early_exit": "Runtime",
-    "evaluation_format_error (exit_cost)": "Cost",
-    "evaluation_format_error (exit_format)": "Format",
-    "evaluation_format_error (max_steps)": "Evaluation",
-    "evaluation_format_error (submit)": "Evaluation",
-    "submission_not_found (max_steps)": "Evaluation",
-    "submitted": "Success",
-    'unknown_error (open "data/train.csv" 0)': "Permission",
-    "unknown_error (torchrun --nproc_per_node=1 --standalone baseline.py)": "Runtime",
-    "unknown_error (validate)": "Evaluation",
-    "submission_not_found (submit)": "Evaluation",
-    "unknown_error (ls -R data/)": "Runtime",
-    "unknown_error (ls data/train/)": "Runtime",
-    "submission_not_found (exit_format)": "Evaluation",
-    "unknown_error (python train.py)": "Runtime",
-    "unknown_error (python baseline.py)": "Runtime",
-    "unknown_error (python)": "Runtime",
-    "unknown_error (submit)": "Evaluation",
-    "unknown_error (insert)": "Format",
-    "unknown_error (search)": "Format",
-    "unknown_error (view)": "Format",
-    "unknown_error (edit)": "Format",
+    "autosubmission (exit_context)": ["Context"],
+    "autosubmission (max_steps)": ["Max Steps"],
+    "submission_not_found (exit_format)": ["Evaluation", "Format"],
+    "submission_not_found (exit_context)": ["Evaluation", "Context"],
+    'unknown_error (open "data/train.csv" 0)': ["Permission"],
+    "autosubmission (exit_cost)": ["Cost"],
+    "autosubmission (exit_format)": ["Format"],
+    "submission_not_found (max_steps)": ["Evaluation"],
+    "evaluation_format_error (submit)": ["Evaluation", "Submit"],
+    "evaluation_format_error (exit_format)": ["Evaluation", "Format"],
+    "unknown_error (validate)": ["Evaluation"],
+    "evaluation_format_error (max_steps)": ["Evaluation"],
+    "submission_not_found (submit)": ["Evaluation"],
+    "unknown_error (ls -R data/)": ["Runtime"],
+    "unknown_error (ls data/train/)": ["Runtime"],
+    "evaluation_format_error (exit_cost)": ["Evaluation", "Cost"],
+    "evaluation_format_error (exit_context)": ["Evaluation", "Context"],
+    "unknown_error (torchrun --nproc_per_node=2 --standalone baseline.py)": ["Runtime"],
+    "unknown_error (torchrun --nproc_per_node=1 --standalone baseline.py)": ["Runtime"],
+    "unknown_error (python train.py)": ["Runtime"],
+    "unknown_error (python baseline.py)": ["Runtime"],
+    "unknown_error (python evaluate.py)": ["Runtime"],
+    "autosubmission (exit_api)": ["API"],
+    "early_exit": ["Runtime"],
+    "submitted": ["Success"],
 }
+
+# EXIT_STATUS_MAP = {
+#     "autosubmission (exit_api)": "API",
+#     "autosubmission (exit_context)": "Context",
+#     "autosubmission (exit_cost)": "Cost",
+#     "autosubmission (exit_format)": "Format",
+#     "autosubmission (max_steps)": "Max Steps",
+#     "early_exit": "Runtime",
+#     "evaluation_format_error (exit_cost)": "Cost",
+#     "evaluation_format_error (exit_format)": "Format",
+#     "evaluation_format_error (max_steps)": "Evaluation",
+#     "evaluation_format_error (submit)": "Evaluation",
+#     "submission_not_found (max_steps)": "Evaluation",
+#     "submitted": "Success",
+#     'unknown_error (open "data/train.csv" 0)': "Permission",
+#     "unknown_error (torchrun --nproc_per_node=1 --standalone baseline.py)": "Runtime",
+#     "unknown_error (validate)": "Evaluation",
+#     "submission_not_found (submit)": "Evaluation",
+#     "unknown_error (ls -R data/)": "Runtime",
+#     "unknown_error (ls data/train/)": "Runtime",
+#     "submission_not_found (exit_format)": "Evaluation",
+#     "unknown_error (python train.py)": "Runtime",
+#     "unknown_error (python baseline.py)": "Runtime",
+#     "unknown_error (python)": "Runtime",
+#     "unknown_error (submit)": "Evaluation",
+#     "unknown_error (insert)": "Format",
+#     "unknown_error (search)": "Format",
+#     "unknown_error (view)": "Format",
+#     "unknown_error (edit)": "Format",
+# }
 
 ACTION_LIST = ["Edit", "View", "Validate", "Submit", "Search", "Python", "Bash"]
 
@@ -159,6 +207,21 @@ PAUL_TOL_MUTED = [
     "#AA4499",  # purple
 ]
 
+PAUL_TOL_MUTED_EXTENDED = [
+    "#332288",  # indigo
+    "#88CCEE",  # cyan
+    "#44AA99",  # teal
+    "#117733",  # green
+    "#999933",  # olive
+    "#DDCC77",  # sand
+    "#CC6677",  # rose
+    "#882255",  # wine
+    "#AA4499",  # purple
+    "#DD77CC",  # pinkish-mauve (new, complements rose and purple)
+    "#7799DD",  # soft blue (new, complements indigo)
+    "#66AA55",  # light muted green (new, between green and teal)
+]
+
 # Define PAUL_TOL that was missing
 PAUL_TOL = [
     "#4477AA",  # blue
@@ -172,7 +235,7 @@ PAUL_TOL = [
 
 # MODELS = ["llama3-405b-tools", "gpt4o2", "claude-35-sonnet-new", "gemini-15-pro", "gpt-o1"]
 
-COLOR_CHOICE = PAUL_TOL_MUTED
+COLOR_CHOICE = PAUL_TOL_MUTED_EXTENDED
 MODEL_COLOR_MAP = {model: color for model, color in zip(MODELS, COLOR_CHOICE)}
 # MODEL_COLOR_MAP = {
 #     "llama3-405b-tools": "#4477AA",
@@ -277,8 +340,29 @@ def set_custom_font():
         return
     fontManager.addfont(font_path)
     prop = FontProperties(fname=PosixPath(font_path))
-    sns.set_theme(font=prop.get_name(), style="dark")
+    sns.set_theme(font=prop.get_name(), style="white", palette="pastel")
     plt.rcParams["font.family"] = prop.get_name()
+
+    # Remove plot borders/spines
+    plt.rcParams["axes.spines.top"] = False
+    plt.rcParams["axes.spines.right"] = False
+    plt.rcParams["axes.spines.bottom"] = True  # Keep x-axis
+    plt.rcParams["axes.spines.left"] = True  # Keep y-axis
+
+    # Improve bar appearance
+    plt.rcParams["patch.edgecolor"] = "none"  # Remove bar edges
+    plt.rcParams["patch.force_edgecolor"] = False
+    plt.rcParams["patch.linewidth"] = 0
+
+    # Subtle grid for readability
+    plt.rcParams["axes.grid"] = True
+    plt.rcParams["axes.grid.axis"] = "y"
+    plt.rcParams["grid.linestyle"] = "--"
+    plt.rcParams["grid.alpha"] = 0.3
+
+    # Fix figure facecolor and edgecolor
+    plt.rcParams["figure.facecolor"] = "white"
+    plt.rcParams["figure.edgecolor"] = "none"
 
 
 def get_fig_size() -> None:
@@ -351,6 +435,7 @@ def process_trajectories(
     """
     Get all results.json and .traj files from the trajectory directory pattern for a given task
     """
+    unique_exit_statuses = set()
     all_results = {}
     for model in models:
         model_results = {"scores": [], "trajectories": [], "exit_statuses": []}
@@ -371,35 +456,38 @@ def process_trajectories(
                     break
 
             exit_status = traj["info"]["exit_status"]
+            # if exit_status == "":
+            #     if "open" in last_action:
+            #         exit_status = "unknown_error (open)"
+            #     elif (
+            #         "python" in last_action
+            #         or "torchrun" in last_action
+            #         or "deepspeed" in last_action
+            #     ):
+            #         exit_status = "unknown_error (python)"
+            #     elif "edit" in last_action:
+            #         exit_status = "unknown_error (edit)"
+            #     elif "validate" in last_action:
+            #         exit_status = "unknown_error (validate)"
+            #     elif "submit" in last_action:
+            #         exit_status = "unknown_error (submit)"
+            #     elif "insert" in last_action:
+            #         exit_status = "unknown_error (insert)"
+            #     elif "search" in last_action:
+            #         exit_status = "unknown_error (search)"
+            #     elif "view" in last_action:
+            #         exit_status = "unknown_error (view)"
+            #     else:
+            #         exit_status = f"unknown_error ({last_action})"
             if exit_status == "":
-                if "open" in last_action:
-                    exit_status = "unknown_error (open)"
-                elif (
-                    "python" in last_action
-                    or "torchrun" in last_action
-                    or "deepspeed" in last_action
-                ):
-                    exit_status = "unknown_error (python)"
-                elif "edit" in last_action:
-                    exit_status = "unknown_error (edit)"
-                elif "validate" in last_action:
-                    exit_status = "unknown_error (validate)"
-                elif "submit" in last_action:
-                    exit_status = "unknown_error (submit)"
-                elif "insert" in last_action:
-                    exit_status = "unknown_error (insert)"
-                elif "search" in last_action:
-                    exit_status = "unknown_error (search)"
-                elif "view" in last_action:
-                    exit_status = "unknown_error (view)"
-                else:
-                    exit_status = f"unknown_error ({last_action})"
+                exit_status = f"unknown_error ({last_action})"
 
-            exit_status = EXIT_STATUS_MAP.get(exit_status, exit_status)
+            exit_statuses = EXIT_STATUS_MAP.get(exit_status, exit_status)
+            # exit_statuses = [exit_status]
 
             model_results["scores"].append(results)
             model_results["trajectories"].append(traj["trajectory"])
-            model_results["exit_statuses"].append(exit_status)
+            model_results["exit_statuses"].append(exit_statuses)
 
         all_results[model] = model_results
 
