@@ -1,8 +1,0 @@
-{
-  "agent": [],
-  "baseline": {
-    "Time": 16.158,
-    "Correct": 24000.0,
-    "Incorrect": 0.0
-  }
-}
