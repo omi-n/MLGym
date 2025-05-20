@@ -5,6 +5,8 @@ openai>=1.0
 pandas
 simple-parsing
 huggingface_hub
+matplotlib
+seaborn
 datasets
 tenacity
 rich

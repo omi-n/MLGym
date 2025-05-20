@@ -1,0 +1,57 @@
+{
+  "agent": [
+    {
+      "Time": 13.653,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 74094
+    },
+    {
+      "Time": 14.007,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 74094
+    },
+    {
+      "Time": 14.068,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 74110
+    },
+    {
+      "Time": 55.164,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 74094
+    },
+    {
+      "Time": 14.613,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 74107
+    },
+    {
+      "Time": 14.227,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 74107
+    },
+    {
+      "Time": 14.035,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 74107
+    },
+    {
+      "Time": 14.111,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 74107
+    }
+  ],
+  "baseline": {
+    "Time": 16.158,
+    "Correct": 24000.0,
+    "Incorrect": 0.0
+  }
+}

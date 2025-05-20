@@ -169,6 +169,8 @@ models/
 workspace/
 .vscode/
 *.pptx
+.cursor/
+*.ipynb
 
 # Trajectories - ignore everything except mlgym_bench_v0
 trajectories/*

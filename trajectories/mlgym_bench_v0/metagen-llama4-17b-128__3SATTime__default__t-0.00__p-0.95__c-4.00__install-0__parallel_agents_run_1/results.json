@@ -1,0 +1,27 @@
+{
+  "agent": [
+    {
+      "Time": 15.23,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 74094
+    },
+    {
+      "Time": 15.644,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 74719
+    },
+    {
+      "Time": 15.935,
+      "Correct": 23997,
+      "Incorrect": 0,
+      "Decisions": 74719
+    }
+  ],
+  "baseline": {
+    "Time": 16.158,
+    "Correct": 24000.0,
+    "Incorrect": 0.0
+  }
+}

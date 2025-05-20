@@ -1,0 +1,34 @@
+{
+  "agent": [
+    {
+      "accuracy": 0.9416
+    },
+    {
+      "accuracy": 0.9371
+    },
+    {
+      "accuracy": 0.2367
+    },
+    {
+      "accuracy": 0.9416
+    },
+    {
+      "accuracy": 0.9331
+    },
+    {
+      "accuracy": 0.928
+    },
+    {
+      "accuracy": 0.9416
+    },
+    {
+      "accuracy": 0.939
+    },
+    {
+      "accuracy": 0.939
+    }
+  ],
+  "baseline": {
+    "accuracy": 0.7835
+  }
+}
