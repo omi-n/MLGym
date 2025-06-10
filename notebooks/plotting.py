@@ -1,49 +1,52 @@
-"""
-Copyright (c) Meta Platforms, Inc. and affiliates.
-
-Script to plot termination errors, failed runs and action analyses.
-"""
-
+# %%
 from __future__ import annotations
 
 from collections import defaultdict
-from dataclasses import dataclass, field
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from simple_parsing import parse
+import seaborn as sns
 
-from mlgym.evaluation.utils import (
+from mlgym.evaluation.utils import (  # EXIT_STATUS_MAP,; MODEL_LOGOS,
     ACTION_COLOR_MAP,
-    MODEL_COLOR_MAP,
+    MODEL_NAME_MAP,
     MODEL_SHORT_NAME_MAP,
     MODELS,
     TASKS,
     get_action_results,
     get_exit_status_results,
     process_trajectories,
-    set_custom_font,
 )
 
-# sns.set_style("dark")
-set_custom_font()
+# set_custom_font()
+
+# %%
+# Variables
+traj_parent_dir = "../trajectories/mlgym_bench_v0/"
+traj_pattern = "default__t-0.00__p-0.95__c-4.00__install-0__parallel_agents"
+models = MODELS
+output_dir = Path("../assets/figs/")
 
 
-@dataclass
-class Options:
-    """Options for processing results."""
+# %%
+# Get all trajectory information
+all_trajectories = defaultdict(dict)
+acceptable_exit_statuses = ["autosubmission (max_steps)", "submitted"]
 
-    traj_parent_dir: str  # path to the root trajectory directory. for example, "trajectories/dnathani"
-    traj_pattern: str  # pattern to match trajectory directories. Should NOT include the model name (at the start), and the run seed marker (at the end). Eg: "imageClassificationCifar10__better_thought_action_parser_with_insert__t-0.00__p-0.95__c-4.00__install-0__parallel_agents"
-    models: list[str] = field(
-        default_factory=lambda: MODELS
-    )  # list of models to process
+for task_id, _ in TASKS.items():
+    task_results = process_trajectories(traj_parent_dir, traj_pattern, task_id, models)
+    all_trajectories[task_id] = task_results
+
+exit_status_results = get_exit_status_results(all_trajectories)
+action_results = get_action_results(all_trajectories)
 
 
+# %%
 def plot_es_counts_per_model(exit_status_results: dict, output_path: str) -> None:
     """
-    Plot a stacked bar chart of exit status counts with flipped axes.
+    Plot a stacked bar chart of exit status counts with flipped axes using seaborn.
 
     Args:
         exit_status_results (dict): Dictionary containing exit status counts per model.
@@ -51,8 +54,6 @@ def plot_es_counts_per_model(exit_status_results: dict, output_path: str) -> Non
             {model: {exit_status: count, ...}, ...}
         output_path (str): Path to save the plotted figure in PDF format.
     """
-    # sns.set_style("dark")
-    # set_custom_font()
 
     raw_counts: dict = exit_status_results.get("es_counts_per_model", {})
     data: dict = {model: dict(counts) for model, counts in raw_counts.items()}
@@ -61,7 +62,7 @@ def plot_es_counts_per_model(exit_status_results: dict, output_path: str) -> Non
     # sort the columns by the name of the model
     df = df[df.sum().sort_values(ascending=False).index]
 
-    # Remove the "Success" exit sti]us column if it exists.
+    # Remove the "Success" exit status column if it exists.
     if "Success" in df.columns:
         df.drop("Success", axis=1, inplace=True)
     if "Max Steps" in df.columns:
@@ -72,54 +73,193 @@ def plot_es_counts_per_model(exit_status_results: dict, output_path: str) -> Non
     # Transpose so that exit statuses are on x-axis and models are columns.
     df_flip: pd.DataFrame = df.T
 
-    # Create figure with adjusted height ratios for legend
+    # Convert to long format for seaborn
+    df_melted = df_flip.reset_index().melt(
+        id_vars="index", var_name="Model", value_name="Count"
+    )
+    df_melted.rename(columns={"index": "Exit Status"}, inplace=True)
+
+    # Map model names to short names
+    df_melted["Model_Short"] = df_melted["Model"].map(
+        lambda x: MODEL_SHORT_NAME_MAP.get(x, x)
+    )
+
+    # Order exit statuses by total counts (descending)
+    exit_status_totals = (
+        df_melted.groupby("Exit Status")["Count"].sum().sort_values(ascending=False)
+    )
+    df_melted["Exit Status"] = pd.Categorical(
+        df_melted["Exit Status"], categories=exit_status_totals.index, ordered=True
+    )
+
+    # Create pivot table for manual stacking
+    pivot_df = df_melted.pivot(
+        index="Exit Status", columns="Model_Short", values="Count"
+    ).fillna(0)
+    pivot_df = pivot_df.reindex(exit_status_totals.index)  # Maintain order
+
+    # Create figure
     fig, ax = plt.subplots(figsize=(6.5, 4))
 
-    bottom = np.zeros(len(df_flip))
-    print("=" * 20)
-    for i, model in enumerate(df_flip.columns):
-        print(f"Model: {model}, Color: {MODEL_COLOR_MAP[model]}")
-        ax.bar(
-            df_flip.index,
-            df_flip[model],
-            bottom=bottom,
-            width=0.5,
-            color=MODEL_COLOR_MAP[model],
-            label=MODEL_SHORT_NAME_MAP.get(model, model),
+    # Get seaborn colors
+    colors = sns.color_palette("deep", n_colors=len(pivot_df.columns))
+
+    # Manual stacking with seaborn styling
+    bottom_values = np.zeros(len(pivot_df.index))
+    legend_handles = []
+
+    for i, model in enumerate(pivot_df.columns):
+        bars = ax.bar(
+            range(len(pivot_df.index)),
+            pivot_df[model],
+            bottom=bottom_values,
+            color=colors[i],
+            alpha=1.0,
+            label=model,
+            width=0.6,
+            edgecolor="black",
+            linewidth=0.5,
         )
-        bottom += df_flip[model]
+        legend_handles.append(bars[0])
+        bottom_values += pivot_df[model]
 
-    # yticks = list(range(0, 18, 3))
-    # ax.set_yticks(yticks, yticks, fontsize=10, fontweight="bold")
-    ax.tick_params(axis="y", labelsize=8)
+    # Style the plot - keep all spines for box appearance
+    for spine in ax.spines.values():
+        spine.set_visible(True)
+        spine.set_linewidth(0.8)
+        spine.set_color("black")
 
-    plt.xticks(
-        range(len(df_flip.index)),
-        list(df_flip.index),
-        rotation=0,
-        ha="center",
+    # Add tick marks
+    ax.tick_params(axis="x", direction="out", length=4, width=0.8, labelsize=8)
+    ax.tick_params(axis="y", direction="out", length=4, width=0.8, labelsize=8)
+
+    # Set labels and ticks
+    ax.set_xlabel("Exit Status", fontsize=10)
+    ax.set_ylabel("Count", fontsize=10)
+    ax.set_xticks(range(len(pivot_df.index)))
+    ax.set_xticklabels(pivot_df.index, rotation=0, ha="center")
+
+    # Style the legend with thinner frame
+    legend = ax.legend(
+        legend_handles,
+        pivot_df.columns,
+        loc="upper right",
         fontsize=8,
+        frameon=True,
+        title=None,
     )
-    plt.ylabel("Count", fontsize=10)
-    # Add legend at the bottom
-    handles, labels = ax.get_legend_handles_labels()
-    ax.legend(handles, labels, loc="upper right", fontsize=8)
 
+    # Explicitly override global patch settings to make frame visible
+    if legend:
+        frame = legend.get_frame()
+        frame.set_edgecolor("black")
+        frame.set_linewidth(0.4)  # Thinner frame
+        frame.set_facecolor("white")
+        frame.set_alpha(1.0)
+        frame.set_visible(True)
+
+    # Add grid
     ax.grid(False)
     ax.yaxis.grid(True, linestyle="--", alpha=0.7)
     ax.set_axisbelow(True)
 
-    # Adjust layout to make room for logos
-    plt.subplots_adjust(bottom=0.25)
-    plt.savefig(output_path, format="pdf", bbox_inches="tight", dpi=300)
+    plt.tight_layout()
+    plt.savefig(output_dir / output_path, format="pdf", bbox_inches="tight", dpi=300)
+    plt.show()
     plt.close()
 
 
-def plot_es_counts_per_task(exit_status_results: dict, output_path: str) -> None:
+plot_es_counts_per_model(exit_status_results, "es_counts_per_model.pdf")
+
+
+# %%
+
+
+def plot_es_counts_per_model_heatmap(
+    exit_status_results: dict, output_path: str
+) -> None:
     """
-    Plot a stacked bar chart of exit status counts with flipped axes.
+    Plot a heatmap of exit status counts per model with counts displayed in each cell.
+
+    Args:
+        exit_status_results (dict): Dictionary containing exit status counts per model.
+            Expected key 'es_counts_per_model' with structure:
+            {model: {exit_status: count, ...}, ...}
+        output_path (str): Path to save the plotted figure in PDF format.
     """
-    pass
+
+    raw_counts: dict = exit_status_results.get("es_counts_per_model", {})
+    data: dict = {model: dict(counts) for model, counts in raw_counts.items()}
+    df: pd.DataFrame = pd.DataFrame.from_dict(data, orient="index").fillna(0)
+
+    # sort the columns by the name of the model
+    df = df[df.sum().sort_values(ascending=False).index]
+
+    # Remove the "Success" exit status column if it exists.
+    if "Success" in df.columns:
+        df.drop("Success", axis=1, inplace=True)
+    if "Max Steps" in df.columns:
+        df.drop("Max Steps", axis=1, inplace=True)
+    if "API" in df.columns:
+        df.drop("API", axis=1, inplace=True)
+
+    df = df.reindex(MODELS)
+
+    # Map model names to short names for y-axis
+    df.index = [MODEL_NAME_MAP.get(col, col) for col in df.index]
+
+    # Create figure
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    # Create heatmap with darker colors
+    sns.heatmap(
+        df,  # Transpose so models are on y-axis, exit statuses on x-axis
+        annot=True,
+        fmt="g",  # Format numbers as integers
+        cmap=sns.light_palette(
+            "navy", as_cmap=True
+        ),  # Use continuous sequential colormap for count data
+        robust=True,
+        # square=True,
+        linewidths=0.1,
+        linecolor="lightgray",
+        cbar_kws={"label": "Count"},
+        ax=ax,
+    )
+
+    # Style the plot - keep all spines for box appearance
+    for spine in ax.spines.values():
+        spine.set_visible(True)
+        spine.set_linewidth(0.8)
+        spine.set_color("black")
+
+    # Add tick marks
+    # ax.tick_params(axis="x", direction="out", length=4, width=0.8, labelsize=8)
+    # ax.tick_params(axis="y", direction="out", length=4, width=0.8, labelsize=8)
+
+    # Set labels
+    # ax.set_xlabel("Exit Status", fontsize=10)
+    # ax.set_ylabel("Model", fontsize=10)
+
+    # Rotate x-axis labels for better readability
+    plt.xticks(rotation=45, ha="center")
+    plt.yticks(rotation=0)
+
+    # Style the colorbar
+    cbar = ax.collections[0].colorbar
+    if cbar:
+        cbar.ax.tick_params(labelsize=8)
+        cbar.set_label("Count", fontsize=10)
+
+    plt.tight_layout()
+    plt.savefig(output_dir / output_path, format="pdf", bbox_inches="tight", dpi=300)
+    plt.show()
+    plt.close()
+
+
+plot_es_counts_per_model_heatmap(exit_status_results, "es_counts_per_model_heatmap.pdf")
+
+# %%
 
 
 def plot_failed_incomplete_runs_per_model(
@@ -128,118 +268,116 @@ def plot_failed_incomplete_runs_per_model(
     """
     Plot a bar chart of the failed and incomplete runs for each model.
     Failed runs have no agent scores, incomplete runs have scores but failed to submit.
-    Model names are mapped using MODEL_NAME_MAP and bars are colored using MODEL_COLOR_MAP.
-    Model logos are placed on top of each bar.
+    Uses seaborn barplot with consistent color palette.
 
     Args:
         exit_status_results (dict): Dictionary containing failed and incomplete run counts.
             Expected keys: 'failed_runs_per_model', 'incomplete_runs_per_model'
         output_path (str): Path to save the plotted figure in PDF format.
     """
-    # sns.set_style("dark")
-    # set_custom_font()
 
     failed_runs = exit_status_results["failed_runs_per_model"]
     incomplete_runs = exit_status_results["incomplete_runs_per_model"]
 
+    # Debug: Print the data to see what's happening
+    print(f"Failed runs sample: {dict(list(failed_runs.items())[:3])}")
+    print(f"Incomplete runs sample: {dict(list(incomplete_runs.items())[:3])}")
+    print(f"Total incomplete across all models: {sum(incomplete_runs.values())}")
+
     # Create DataFrame with model order
     df = pd.DataFrame(
         {
-            "Failed": [failed_runs[m] for m in MODELS],
-            "Incomplete": [incomplete_runs[m] for m in MODELS],
+            "Failed Runs": [failed_runs[m] for m in MODELS],
+            "Incomplete Runs": [incomplete_runs[m] for m in MODELS],
         },
         index=MODELS,
     )
 
-    # Sort by total while preserving color mapping
-    totals = df["Failed"]
+    # Sort by total failed runs while preserving model order
+    totals = df["Failed Runs"]
     sort_order = totals.sort_values(ascending=False).index
     df = df.reindex(sort_order)
-    colors = [MODEL_COLOR_MAP[m] for m in df.index]
+
+    # Map model names to short names
     df.rename(index=lambda m: MODEL_SHORT_NAME_MAP.get(m, m), inplace=True)
 
-    # Create figure with adjusted height ratios for legend
-    fig, ax = plt.subplots(figsize=(6.5, 4))
+    # Convert to long format for seaborn
+    df_melted = df.reset_index().melt(
+        id_vars="index", var_name="Status", value_name="Count"
+    )
+    df_melted.rename(columns={"index": "Model"}, inplace=True)
 
-    fig, ax = plt.subplots(figsize=(9, 4))
-
-    x = np.arange(len(df.index))
-    width = 0.35
-
-    failed_bars = ax.bar(
-        x - width / 2, df["Failed"], width, label="Failed Runs", color=colors
+    # Print melted data for debugging
+    print("Melted data sample:")
+    print(df_melted.head(10))
+    print(f"Max count: {df_melted['Count'].max()}")
+    print(
+        f"Incomplete run counts: {df_melted[df_melted['Status'] == 'Incomplete Runs']['Count'].tolist()}"
     )
 
-    incomplete_bars = ax.bar(
-        x + width / 2,
-        df["Incomplete"],
-        width,
-        label="Incomplete Runs",
-        edgecolor=colors,
-        facecolor="none",
-        hatch="////",
-        linewidth=2,
-    )
-    print(df.index)
-    incomplete_bars = ax.bar(
-        x + width / 2,
-        df["Incomplete"],
-        width,
-        label="Incomplete Runs",
-        edgecolor=colors,
-        facecolor="none",
-        hatch="////",
-        linewidth=2,
+    # Create figure
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    # Use seaborn barplot with consistent color palette
+    colors = sns.color_palette("deep", 2)
+    sns.barplot(
+        data=df_melted, x="Model", y="Count", hue="Status", palette=colors, ax=ax
     )
 
-    ax.set_xticks(x)
+    # Style the plot - fix x-axis labels (fontsize=8, not bold)
     ax.set_xticklabels(
-        df.index, rotation=0, ha="center", fontsize=10, fontweight="bold"
+        ax.get_xticklabels(), rotation=45, ha="right", fontsize=8, fontweight="normal"
     )
-    plt.ylabel("Count", fontsize=10)
+    ax.set_ylabel("Count", fontsize=10)
+    ax.set_xlabel("")
 
-    # Add model logos
-    # for idx, model in enumerate(models):
-    #     if model in MODEL_LOGOS:
-    #         logo_path, zoom = MODEL_LOGOS[model]
-    #         try:
-    #             img = plt.imread(logo_path)
-    #             if img.shape[2] == 3:
-    #                 img = np.dstack([img, np.ones((img.shape[0], img.shape[1]))])
+    # Fix y-axis scaling - use max value with minimal padding
+    max_val = df_melted["Count"].max()
+    y_max = max_val + max(2, int(max_val * 0.05))  # Add minimal padding
+    ax.set_ylim(0, y_max)
 
-    #             imagebox = OffsetImage(img, zoom=zoom)
-    #             ab = AnnotationBbox(imagebox, (idx, -6), frameon=False,
-    #                               box_alignment=(0.5, 1))
-    #             ax.add_artist(ab)
-    #         except Exception as e:
-    #             print(f"Error loading logo for {model}: {e}")
-    #             ax.text(idx, -6, MODEL_NAME_MAP.get(model, model),
-    #                    ha='center', va='top', fontsize=10, fontweight='bold')
+    # Set y-axis ticks with appropriate steps
+    if y_max <= 20:
+        step = 5
+    elif y_max <= 50:
+        step = 10
+    else:
+        step = 15
+    yticks = list(range(0, y_max + 1, step))
+    ax.set_yticks(yticks)
+    ax.set_yticklabels(list(map(str, yticks)), fontsize=8)
 
-    yticks = list(range(0, 13, 2))
+    # Style the legend
+    legend = ax.legend(loc="upper right", fontsize=8, title=None)
+    if legend:
+        frame = legend.get_frame()
+        frame.set_edgecolor("black")
+        frame.set_linewidth(0.4)
+        frame.set_facecolor("white")
+        frame.set_alpha(1.0)
 
-    yticks = list(range(0, 50, 10))
-    ax.set_yticks(yticks, list(map(str, yticks)), fontsize=8)
-
-    # Create black legend handles
-    from matplotlib.patches import Patch
-
-    legend_elements = [
-        Patch(facecolor="black", label="Failed Runs"),
-        Patch(
-            facecolor="none", edgecolor="black", hatch="///", label="Incomplete Runs"
-        ),
-    ]
-    ax.legend(handles=legend_elements, loc="best", fontsize=8)
-
+    # Add grid
     ax.grid(False)
     ax.yaxis.grid(True, linestyle="--", alpha=0.7)
     ax.set_axisbelow(True)
 
-    # Adjust layout to make room for logos
-    plt.subplots_adjust(bottom=0.25)
-    plt.savefig(output_path, format="pdf", bbox_inches="tight", dpi=300)
+    # Style spines
+    for spine in ax.spines.values():
+        spine.set_visible(True)
+        spine.set_linewidth(0.8)
+        spine.set_color("black")
+
+    plt.tight_layout()
+    plt.savefig(output_dir / output_path, format="pdf", bbox_inches="tight", dpi=300)
+    plt.show()
     plt.close()
+
+
+plot_failed_incomplete_runs_per_model(
+    exit_status_results, "failed_incomplete_runs_per_model.pdf"
+)
+
+# %%
 
 
 def plot_failed_incomplete_runs_per_task(
@@ -331,6 +469,9 @@ def plot_failed_incomplete_runs_per_task(
     plt.close()
 
 
+# %%
+
+
 def plot_total_actions(action_results: dict, output_path: str) -> None:
     """
     Plot a bar chart of the number of times each action type is taken across all tasks and models.
@@ -403,6 +544,9 @@ def plot_total_actions(action_results: dict, output_path: str) -> None:
     plt.close()
 
 
+# %%
+
+
 def plot_actions_per_step(action_results: dict, output_path: str) -> None:
     """
     Plot a stacked bar chart showing the distribution of actions at each step.
@@ -467,6 +611,9 @@ def plot_actions_per_step(action_results: dict, output_path: str) -> None:
     plt.tight_layout()
     plt.savefig(output_path, format="pdf", bbox_inches="tight", dpi=300)
     plt.close()
+
+
+# %%
 
 
 def plot_actions_per_model(action_results: dict, output_path: str) -> None:
@@ -557,6 +704,9 @@ def plot_actions_per_model(action_results: dict, output_path: str) -> None:
     plt.close()
 
 
+# %%
+
+
 def plot_actions_per_task(action_results: dict, output_path: str) -> None:
     """
     Plot a stacked bar chart showing the distribution of actions for each task.
@@ -630,37 +780,4 @@ def plot_actions_per_task(action_results: dict, output_path: str) -> None:
     plt.close()
 
 
-def main(options: Options):
-    # get all results.json files from trajectory directory pattern
-    all_trajectories = defaultdict(dict)
-    acceptable_exit_statuses = ["autosubmission (max_steps)", "submitted"]
-
-    for task_id, _ in TASKS.items():
-        task_results = process_trajectories(
-            options.traj_parent_dir, options.traj_pattern, task_id, options.models
-        )
-        all_trajectories[task_id] = task_results
-
-    exit_status_results = get_exit_status_results(all_trajectories)
-    action_results = get_action_results(all_trajectories)
-    # pprint(action_results)
-
-    # Plotting
-    plot_es_counts_per_model(exit_status_results, "assets/figs/error_per_model.pdf")
-    plot_failed_incomplete_runs_per_model(
-        exit_status_results, "assets/figs/failed_runs_model.pdf"
-    )
-    plot_failed_incomplete_runs_per_task(
-        exit_status_results, "assets/figs/failed_runs_task.pdf"
-    )
-    plot_total_actions(action_results, "assets/figs/total_actions_analysis.pdf")
-    plot_actions_per_step(action_results, "assets/figs/actions_per_step.pdf")
-    plot_actions_per_model(action_results, "assets/figs/actions_per_model.pdf")
-    plot_actions_per_task(action_results, "assets/figs/actions_per_task.pdf")
-
-    # pprint(exit_status_results)
-
-
-if __name__ == "__main__":
-    args = parse(Options)
-    main(args)
+# %%

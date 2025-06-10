@@ -7,6 +7,7 @@ Evaluation utilities for the MLGym framework.
 from __future__ import annotations
 
 import json
+from collections import defaultdict
 from math import sqrt
 from pathlib import Path, PosixPath
 
@@ -16,17 +17,36 @@ import seaborn as sns
 from matplotlib.font_manager import FontProperties, fontManager
 
 MODELS = [
+    "gpt4o2",
+    "gpt-o3-mini",
+    "gpt-o1",
     "deepseek-r1",
+    "llama3-405b-tools",
+    "llama4-17b-16",
+    "llama4-17b-128",
     "claude-35-sonnet-new",
     "claude-37-sonnet",
     "gemini-15-pro",
     "gemini-20-flash-thinking",
-    # "gemini-20-pro",
     "gemini-25-pro",
+    # "gemini-20-pro",
+]
+
+ORIGINAL_MODELS = [
+    "claude-35-sonnet-new",
+    "gemini-15-pro",
     "gpt4o2",
     "gpt-o1",
-    "gpt-o3-mini",
     "llama3-405b-tools",
+]
+
+NEW_MODELS = [
+    "deepseek-r1",
+    "claude-37-sonnet",
+    "gemini-20-flash-thinking",
+    # "gemini-20-pro",
+    "gemini-25-pro",
+    "gpt-o3-mini",
     "llama4-17b-16",
     "llama4-17b-128",
 ]
@@ -34,7 +54,7 @@ MODELS = [
 MODEL_NAME_MAP = {
     "llama3-405b-tools": "Llama-3.1-405B",
     "deepseek-r1": "DeepSeek-R1",
-    "gpt-o1": "o1-preview",
+    "gpt-o1": "O1-preview",
     "claude-35-sonnet-new": "Claude-3.5-Sonnet",
     "claude-37-sonnet": "Claude-3.7-Sonnet",
     "gemini-15-pro": "Gemini-1.5-Pro",
@@ -42,15 +62,15 @@ MODEL_NAME_MAP = {
     "gemini-20-pro": "Gemini-2.0-Pro",
     "gemini-25-pro": "Gemini-2.5-Pro",
     "gpt4o2": "GPT-4o",
-    "gpt-o3-mini": "o3-mini",
+    "gpt-o3-mini": "O3-mini",
     "llama4-17b-16": "Llama-4-Scout",
     "llama4-17b-128": "Llama-4-Maverick",
 }
 
 MODEL_SHORT_NAME_MAP = {
     "llama3-405b-tools": "Llama-405B",
-    "deepseek_r1": "R1",
-    "gpt-o1": "o1-preview",
+    "deepseek-r1": "R1",
+    "gpt-o1": "O1-preview",
     "claude-35-sonnet-new": "Claude-3.5-Sonnet",
     "claude-37-sonnet": "Claude-3.7-Sonnet",
     "gemini-15-pro": "Gemini-1.5-Pro",
@@ -58,7 +78,7 @@ MODEL_SHORT_NAME_MAP = {
     "gemini-20-pro": "Gemini-2.0-Pro",
     "gemini-25-pro": "Gemini-2.5-Pro",
     "gpt4o2": "GPT-4o",
-    "gpt-o3-mini": "o3-mini",
+    "gpt-o3-mini": "O3-mini",
     "llama4-17b-16": "Llama-4-Scout",
     "llama4-17b-128": "Llama-4-Maverick",
 }
@@ -93,7 +113,7 @@ MODEL_COST_MAP = {
 
 MODEL_LOGOS = {
     "llama3-405b-tools": ("assets/logos/meta-logo.png", 0.15),
-    "deepseek_r1": ("assets/logos/deepseek-logo.png", 0.15),
+    "deepseek-r1": ("assets/logos/deepseek-logo.png", 0.15),
     "gpt-o1": ("assets/logos/openai-logo.png", 0.15),
     "claude-35-sonnet-new": ("assets/logos/anthropic-logo.png", 0.15),
     "claude-37-sonnet": ("assets/logos/anthropic-logo.png", 0.15),
@@ -272,12 +292,12 @@ TASKS = {
         "priority_metric": "accuracy",
         "metric_direction": "maximize",
     },
-    # "imageCaptioningCOCO": {
-    #     "name": "MS-COCO",
-    #     "shortname": "MS-COCO",
-    #     "priority_metric": "BLEU Score",
-    #     "metric_direction": "maximize",
-    # },
+    "imageCaptioningCOCO": {
+        "name": "MS-COCO",
+        "shortname": "MS-COCO",
+        "priority_metric": "BLEU Score",
+        "metric_direction": "maximize",
+    },
     "languageModelingFineWeb": {
         "name": "Language Modeling",
         "shortname": "FineWeb",
@@ -331,10 +351,6 @@ TASKS = {
 
 def set_custom_font():
     """Set the custom font for the plots."""
-    # font_path = "/Users/dnathani/Library/Fonts/BerkeleyMonoNerdFontMono-Bold.ttf"
-    # font_path = "/Users/dnathani/Library/Fonts/Source Code Pro for Powerline.otf"
-    # font_path = "/Users/dnathani/Library/Fonts/FiraCodeNerdFontMono-Regular.ttf"
-    # font_path = "/Users/dnathani/Library/Fonts/Droid Sans Mono for Powerline Nerd Font Complete.otf"
     font_path = "/System/Library/Fonts/Helvetica.ttc"
     if not Path(font_path).exists():
         return
@@ -344,15 +360,17 @@ def set_custom_font():
     plt.rcParams["font.family"] = prop.get_name()
 
     # Remove plot borders/spines
-    plt.rcParams["axes.spines.top"] = False
-    plt.rcParams["axes.spines.right"] = False
-    plt.rcParams["axes.spines.bottom"] = True  # Keep x-axis
-    plt.rcParams["axes.spines.left"] = True  # Keep y-axis
+    spines = ["top", "right", "bottom", "left"]
+    for spine in spines:
+        plt.rcParams[f"axes.spines.{spine}"] = True
 
-    # Improve bar appearance
-    plt.rcParams["patch.edgecolor"] = "none"  # Remove bar edges
-    plt.rcParams["patch.force_edgecolor"] = False
-    plt.rcParams["patch.linewidth"] = 0
+    # Set spine weight for better visibility
+    plt.rcParams["axes.linewidth"] = 0.5  # Set spine width
+
+    # # Improve bar appearance
+    # plt.rcParams["patch.edgecolor"] = "black"  # Remove bar edges
+    # plt.rcParams["patch.force_edgecolor"] = True
+    # plt.rcParams["patch.linewidth"] = 0.5
 
     # Subtle grid for readability
     plt.rcParams["axes.grid"] = True
@@ -435,7 +453,6 @@ def process_trajectories(
     """
     Get all results.json and .traj files from the trajectory directory pattern for a given task
     """
-    unique_exit_statuses = set()
     all_results = {}
     for model in models:
         model_results = {"scores": [], "trajectories": [], "exit_statuses": []}
@@ -492,3 +509,137 @@ def process_trajectories(
         all_results[model] = model_results
 
     return all_results
+
+
+def get_action_results(trajectories: dict) -> dict:
+    """
+    Get the number of times each action is taken across all tasks and models.
+
+    Args:
+        trajectories (dict): Dictionary containing trajectories for each task and model.
+            Structure: {task_id: {model_id: {"trajectories": [trajectory_list], ...}, ...}, ...}
+            Each trajectory_list contains a list of actions taken during that run.
+
+    Returns:
+        dict: Dictionary with action counts.
+            Structure: {action_name: count, ...}
+    """
+    action_counts = defaultdict(int)
+    actions_per_model = defaultdict(lambda: defaultdict(int))
+    actions_per_task = defaultdict(lambda: defaultdict(int))
+    actions_per_step = defaultdict(lambda: defaultdict(int))
+    file_editing = ["create", "edit", "insert"]
+    file_viewer = ["open", "goto", "scroll_up", "scroll_down"]
+    validation = ["validate"]
+    submit = ["submit"]
+    search = ["search_dir", "search_file", "find_file"]
+    python_scripts = ["torchrun", "python", "python3", "accelerate", "deepspeed"]
+
+    for task_id, task_results in trajectories.items():
+        for model_id, model_results in task_results.items():
+            for trajectory in model_results["trajectories"]:
+                for step_idx, step in enumerate(trajectory):
+                    # Clean up the action string by removing whitespace
+                    action = step["action"].strip()
+                    # Map actions to categories
+                    if any(action.startswith(cmd) for cmd in file_editing):
+                        action = "Edit"
+                    elif any(action.startswith(cmd) for cmd in file_viewer):
+                        action = "View"
+                    elif any(action.startswith(cmd) for cmd in validation):
+                        action = "Validate"
+                    elif any(action.startswith(cmd) for cmd in submit):
+                        action = "Submit"
+                    elif any(action.startswith(cmd) for cmd in search):
+                        action = "Search"
+                    elif any(action.startswith(cmd) for cmd in python_scripts):
+                        action = "Python"
+                    else:
+                        action = "Bash"
+
+                    action_counts[action] += 1
+                    actions_per_model[model_id][action] += 1
+                    actions_per_task[task_id][action] += 1
+                    actions_per_step[step_idx + 1][action] += 1
+
+    # Convert defaultdict to regular dict
+    return {
+        "action_counts": dict(action_counts),
+        "actions_per_model": dict(actions_per_model),
+        "actions_per_task": dict(actions_per_task),
+        "actions_per_step": {
+            step: dict(actions) for step, actions in actions_per_step.items()
+        },
+    }
+
+
+def get_exit_status_results(trajectories: dict) -> dict[str, dict]:
+    """
+    Get the number of times each exit status occurs across all tasks and models.
+    """
+    total_es_counts = defaultdict(lambda: 0)
+    es_counts_per_model = defaultdict(lambda: defaultdict(lambda: 0))
+    es_counts_per_task = defaultdict(lambda: defaultdict(lambda: 0))
+
+    # no agent scores
+    failed_runs_per_model = defaultdict(lambda: 0)
+
+    # agent scores but failed to submit at the end of the run
+    incomplete_runs_per_model = defaultdict(lambda: 0)
+    failed_runs_per_task = defaultdict(lambda: 0)
+    incomplete_runs_per_task = defaultdict(lambda: 0)
+
+    for task_id, task_results in trajectories.items():
+        model_num = 0
+        for model_id, model_results in task_results.items():
+            assert len(model_results["exit_statuses"]) == len(
+                model_results["scores"]
+            ), (
+                f"Exit statuses and scores length mismatch for model {model_id} in task {task_id}"
+            )
+            for exit_status, score in zip(
+                model_results["exit_statuses"], model_results["scores"]
+            ):
+                success_status = False
+                for es in exit_status:
+                    total_es_counts[es] += 1
+                    es_counts_per_model[model_id][es] += 1
+                    es_counts_per_task[task_id][es] += 1
+                    success_status = success_status or es in ["Success", "Max Steps"]
+
+                failed = 0
+                incomplete = 0
+                if "agent" not in score:
+                    failed = 1
+                elif "agent" in score and len(score["agent"]) == 0:
+                    failed = 1
+                elif (
+                    "agent" in score
+                    and len(score["agent"]) > 0
+                    and any(es not in ["Success", "Max Steps"] for es in exit_status)
+                ):
+                    failed = 1
+                elif (
+                    "agent" in score and len(score["agent"]) > 0 and not success_status
+                ):
+                    incomplete = 1
+
+                failed_runs_per_model[model_id] += failed
+                incomplete_runs_per_model[model_id] += incomplete
+                failed_runs_per_task[task_id] += failed
+                incomplete_runs_per_task[task_id] += incomplete
+
+                model_num += 1
+
+    print("All exit statuses:\n")
+    print(f"{total_es_counts.keys()}")
+
+    return {
+        "total_es_counts": total_es_counts,
+        "es_counts_per_model": es_counts_per_model,
+        "es_counts_per_task": es_counts_per_task,
+        "failed_runs_per_model": failed_runs_per_model,
+        "incomplete_runs_per_model": incomplete_runs_per_model,
+        "failed_runs_per_task": failed_runs_per_task,
+        "incomplete_runs_per_task": incomplete_runs_per_task,
+    }
