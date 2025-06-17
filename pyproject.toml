@@ -49,6 +49,7 @@ dependencies = [
     "pymupdf",
     "pymupdf4llm",
     "streamlit",
+    "gputil",
 ]
 
 
