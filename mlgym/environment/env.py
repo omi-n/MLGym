@@ -78,7 +78,7 @@ EDIT_PATTERN = re.compile(r"^edit\s+(\d+):(\d+)(?:\n|$|\s)", re.MULTILINE)
 TRAIN_COMMANDS = ["torchrun", "python", "python3", "accelerate", "deepspeed"]
 
 yaml.add_representer(str, multiline_representer)
-yaml.representer.SafeRepresenter.add_representer(str, multiline_representer)
+yaml.representer.SafeRepresenter.add_representer(str, multiline_representer)  # type: ignore
 
 
 @dataclass(frozen=True)

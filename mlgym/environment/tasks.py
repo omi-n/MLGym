@@ -132,7 +132,7 @@ class TaskConfig(Serializable):
     def dump_yaml(self, stream, **kwargs: Any) -> str:  # type: ignore # noqa: ANN001, ANN401
         # add multiline representer for description
         yaml.add_representer(str, multiline_representer)
-        yaml.representer.SafeRepresenter.add_representer(str, multiline_representer)
+        yaml.representer.SafeRepresenter.add_representer(str, multiline_representer)  # type: ignore
 
         data = encode(self)
         # Remove None values
