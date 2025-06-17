@@ -13,6 +13,6 @@ assert CONFIG_DIR.is_dir()
 
 
 __all__ = [
-    "PACKAGE_DIR",
     "CONFIG_DIR",
+    "PACKAGE_DIR",
 ]
