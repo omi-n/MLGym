@@ -53,9 +53,9 @@ class ModelArguments(FrozenSerializable):
     # api key
     api_key: str | None = None
     # custom stop sequences
-    stop: list[str] = field(default_factory=list)
+    stop: list[str] = field(default_factory=list)  # noqa: RUF009
     # additional kwargs to pass to litellm.completion
-    completion_kwargs: dict[str, Any] = field(default_factory=dict)
+    completion_kwargs: dict[str, Any] = field(default_factory=dict)  # noqa: RUF009
 
 
 @dataclass
@@ -141,7 +141,7 @@ class BaseModel(ABC):
 
         # Map model name to metadata (cost, context info)
         # FIXME: Find a better way to handle custom models and shortcuts.
-        MODELS = {
+        MODELS = {  # noqa: N806
             **{dest: self.MODELS[src] for dest, src in self.SHORTCUTS.items()},
             **self.MODELS,
         }
@@ -216,7 +216,7 @@ class BaseModel(ABC):
             f"total_tokens_received={self.stats.tokens_received:,}, "
             f"total_cost={self.stats.total_cost:.2f}, "
             f"total_api_calls={self.stats.api_calls:,}",
-        )  # type: ignore
+        )
 
         # Check whether total cost or instance cost limits have been exceeded
         if 0 < self.args.total_cost_limit <= self.stats.total_cost:

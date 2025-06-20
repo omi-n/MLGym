@@ -19,6 +19,28 @@ We use ruff as linter/formatter and mypy for type checking.
    - **Path Handling**: Use `pathlib.Path` instead of `os.path` for all file/path operations
    - **Code Style**: Follow PEP 8 guidelines and use f-strings for string formatting
 
+For VS Code and Cursor, we use the following workspace settings to streamline the development. This is just one option, and you are free to use your own development config.
+
+```json
+"mypy-type-checker.importStrategy": "fromEnvironment",
+"mypy-type-checker.reportingScope": "workspace",
+"mypy-type-checker.preferDaemon": true,
+"[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "file",
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit",
+        "source.organizeImports": "explicit"
+    },
+},
+"ruff.nativeServer": "on",
+"ruff.enable": true,
+"ruff.lint.enable": true,
+"ruff.organizeImports": true,
+"ruff.fixAll": true,
+```
+
 ## Pull Requests
 
 We actively welcome your pull requests.
