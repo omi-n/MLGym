@@ -148,7 +148,7 @@ class TaskConfig(Serializable):
                 if not dataset_config_path.exists():
                     msg = f"Dataset config file not found at {dataset_config_path}"
                     raise FileNotFoundError(msg)
-                datasets.append(DatasetConfig.load_yaml(dataset_config_path))  # type: ignore
+                datasets.append(DatasetConfig.load_yaml(dataset_config_path))
             object.__setattr__(self, "_datasets", datasets)
 
         if self.sample_submission is not None and not Path(self.sample_submission).exists():

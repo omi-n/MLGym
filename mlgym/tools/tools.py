@@ -165,7 +165,7 @@ class ToolHandler:
                 command_patterns[command.name] = pat
         if hasattr(self, "submit_command_end_name"):
             submit_pat = re.compile(
-                rf"^\s*({self.submit_command})\s*(.*?)^({self.submit_command_end_name})\s*$",  # type: ignore
+                rf"^\s*({self.submit_command})\s*(.*?)^({self.submit_command_end_name})\s*$",
                 re.DOTALL | re.MULTILINE,
             )
         else:

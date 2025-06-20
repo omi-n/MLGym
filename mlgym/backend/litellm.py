@@ -122,7 +122,7 @@ class LiteLLMModel(BaseModel):
         if self.lm_provider == "anthropic":
             completion_kwargs["max_tokens"] = self.model_max_output_tokens
         try:
-            response: litellm.types.utils.ModelResponse = litellm.completion(  # type: ignore
+            response: litellm.types.utils.ModelResponse = litellm.completion(
                 model=self.model_name,
                 messages=messages,
                 temperature=self.args.temperature,
