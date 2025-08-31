@@ -126,7 +126,7 @@ class LiteLLMModel(BaseModel):
                 model=self.model_name,
                 messages=messages,
                 temperature=self.args.temperature,
-                top_p=self.args.top_p,
+                # top_p=self.args.top_p,
                 api_version=self.args.api_version,
                 **completion_kwargs,
                 **extra_args,

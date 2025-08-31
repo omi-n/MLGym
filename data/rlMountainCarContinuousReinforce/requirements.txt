@@ -1,4 +1,4 @@
-jax[cuda12]
+jax
 gymnax
 flax
 optax
