@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # Configuration
-SEEDS=(1001 1002 1003 1004)
+SEEDS=(1000 1001 1002)
 TASKS=(
     "battleOfSexes.yaml"
     "blotto.yaml"
