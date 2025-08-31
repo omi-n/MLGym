@@ -1,0 +1,7 @@
+# you'll have to put these into a .env manually.
+MLGYM_CONFIG_ROOT="<path_to_MLGYM_root>/configs"
+MLGYM_TASK_CONFIG_DIR="<path_to_MLGYM_root>/configs/tasks"
+MLGYM_WORKSPACE_PATH="<path_to_MLGYM_root>/workspace"
+MLGYM_ENV_TIMEOUT=2700
+MLGYM_ACTION_SHORT_TIMEOUT=60
+MLGYM_ACTION_LONG_TIMEOUT=1800
