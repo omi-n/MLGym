@@ -3,8 +3,11 @@
 # Simple MLGym experiments runner
 set -euo pipefail
 
+# Parse arguments
+MODEL="${1:-litellm:gpt-5-mini}"
+
 # Configuration
-SEEDS=(1000 1001 1002)
+SEEDS=(1000)
 TASKS=(
     "battleOfSexes.yaml"
     "blotto.yaml"
@@ -21,7 +24,7 @@ TASKS=(
 )
 
 # Base command
-BASE_CMD="python run.py --container_type docker --model litellm:gpt-5 --per_instance_cost_limit 5.00 --agent_config_path configs/agents/default.yaml --temp 1 --gpus 0 --max_steps 100 --aliases_file ./dockerfiles/aliases.sh"
+BASE_CMD="python run.py --container_type docker --model $MODEL --per_instance_cost_limit 5.00 --agent_config_path configs/agents/default.yaml --temp 1 --gpus 1 --max_steps 50 --aliases_file ./dockerfiles/aliases.sh"
 
 # Array to track background job PIDs
 declare -a job_pids=()
