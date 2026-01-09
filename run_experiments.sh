@@ -7,7 +7,7 @@ set -euo pipefail
 MODEL="${1:-litellm:gpt-5-mini}"
 
 # Configuration
-SEEDS=(1000)
+SEEDS=(1000 1001 1002)
 TASKS=(
     "battleOfSexes.yaml"
     "blotto.yaml"
