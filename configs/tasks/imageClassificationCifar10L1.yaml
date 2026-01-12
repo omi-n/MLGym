@@ -1,6 +1,6 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 
-id: imageClassificationCifar10
+id: imageClassificationCifar10L1
 name: Image Classification CIFAR10
 description: |-
   The goal of this task is to train a model to classify a given image
