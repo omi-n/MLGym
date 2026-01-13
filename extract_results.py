@@ -38,7 +38,7 @@ def calculate_reward(agent_scores: dict, baseline_scores: dict) -> float:
         # Try exact match first, then case-insensitive
         achieved_value = agent_scores.get(metric_name)
         if achieved_value is None:
-            achieved_value = agent_lower.get(metric_name.lower(), baseline_value)
+            achieved_value = agent_lower.get(metric_name.lower(), 0.0)
         reward += achieved_value - baseline_value
     return reward
 
@@ -73,10 +73,11 @@ def process_trajectories(trajectories_dir: Path) -> dict:
 
         if not agent_entries:
             print(f"Warning: No agent entries in {trajectory_path.name}")
-            continue
-
-        # Get recent agent score
-        first_agent_score = agent_entries[0]
+            # default to zero scores
+            first_agent_score = {k: 0.0 for k in baseline}
+        else:
+            # Get recent agent score
+            first_agent_score = agent_entries[-1]
 
         task_name = extract_task_name(trajectory_path.name)
 
