@@ -29,8 +29,10 @@ def calculate_reward(agent_scores: dict, baseline_scores: dict) -> float:
     Calculate continuous reward as (achieved - baseline) for each metric.
     Skips 'time' and 'reward std' metrics.
     Uses case-insensitive metric matching.
+    For "lower is better" metrics (rmse, loss): uses baseline - achieved.
     """
     reward = 0.0
+    lower_is_better = ["rmse", "loss", "incorrect"]
     # Create lowercase lookup for agent scores
     agent_lower = {k.lower(): v for k, v in agent_scores.items()}
 
@@ -41,8 +43,10 @@ def calculate_reward(agent_scores: dict, baseline_scores: dict) -> float:
         achieved_value = agent_lower.get(metric_name.lower())
         if achieved_value is None:
             reward -= abs(baseline_value)  # Penalize missing metric
+        elif any(lib in metric_name.lower() for lib in lower_is_better):
+            reward += baseline_value - achieved_value  # Lower is better
         else:
-            reward += achieved_value - baseline_value
+            reward += achieved_value - baseline_value  # Higher is better
     return reward
 
 
